@@ -1,6 +1,6 @@
 import * as settings from '../settings.json';
-import { Telegraf, Scenes, session, Markup } from 'telegraf';
-import { RewardBalanceWizard } from './modules/reward/contractRewardWizard';
+import { Telegraf, Scenes, session, Markup, Context } from 'telegraf';
+import { RewardBalanceWizard } from './modules/reward/total_wizard';
 import YAML from 'yaml';
 import fs from 'fs';
 import path from 'path';
@@ -8,7 +8,7 @@ import path from 'path';
 // import { HttpsProxyAgent } from 'https-proxy-agent';
 
 const MODULE1: string = '💰 Current total rewards';
-// const MODULE2: string = '🦻 Listen to reward changes';
+const ELIGIBLE_CHAT: number = -562433941;
 
 class ChainlinkBot {
   private addressYaml: any;
@@ -31,34 +31,45 @@ class ChainlinkBot {
     this.bot.use(session());
     this.bot.use(stage.middleware());
 
-    this.bot.help((ctx) =>
-      ctx.replyWithMarkdownV2(
-        'This bot is segmented into several modules with certain funtionalities\\. Type `link` to start the bot\\.'
-      )
-    );
+    this.bot.help((ctx) => {
+      if (this.isChatEligible(ctx)) {
+        ctx.replyWithMarkdownV2(
+          'This bot is segmented into several modules with certain funtionalities\\. Type `link` to start the bot\\.'
+        );
+      }
+    });
 
     this.bot.hears('link', async (ctx) => {
-      await ctx.replyWithMarkdownV2(
-        '*Choose your module*',
-        Markup.keyboard([[MODULE1]])
-          .oneTime()
-          .resize()
-      );
+      if (this.isChatEligible(ctx)) {
+        await ctx.replyWithMarkdownV2(
+          '*Choose your module*',
+          Markup.keyboard([[MODULE1]])
+            .oneTime()
+            .resize()
+        );
+      }
     });
     this.bot.hears(MODULE1, (ctx) => {
       ctx.scene.enter('reward-wizard');
       ctx.replyWithMarkdownV2('*Entering reward fetcher module\\!*\nType `/help` for all available commands');
     });
-    // this.bot.hears(MODULE2, (ctx) => {
-    //   ctx.scene.enter('reward-wizard2');
-    //   ctx.replyWithMarkdownV2('*Entering another module\\!*\nType `/help` for all available commands');
-    // });
   }
 
   private readAddressYaml(): void {
     const contractAddressesFilePath: string = path.join(__dirname, '..', 'resources/address_info.yml');
     const file: string = fs.readFileSync(contractAddressesFilePath, 'utf8');
     this.addressYaml = YAML.parse(file);
+  }
+
+  private isChatEligible(ctx: Context): boolean {
+    if (ctx.chat?.id) {
+      if (Math.abs(ctx.chat?.id) != ELIGIBLE_CHAT) {
+        ctx.replyWithMarkdownV2('*Sorry, this chat is not eligible to work with me\\!*');
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 }
 
