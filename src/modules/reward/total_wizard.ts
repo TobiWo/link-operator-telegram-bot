@@ -1,21 +1,12 @@
 import * as FluxAggregator from '../../../artifacts/FluxAggregator.json';
 import * as LinkToken from '../../../artifacts/LinkToken.json';
+import * as OcrAggregator from '../../../artifacts/OCR.json';
 // import * as RunlogAggregator from '../../../artifacts/Oracle.json';
-import * as settings from '../../../settings.json';
 import { Scenes, Composer } from 'telegraf';
 import { providers, Contract, BigNumber, utils } from 'ethers';
 
-const OCR_ABI: string[] = ['function owedPayment(address _transmitter) public view returns (uint256)'];
-
 export class RewardBalanceWizard {
-  private infuraProvider: providers.InfuraProvider;
-
-  constructor(private addressYaml: any) {
-    this.infuraProvider = new providers.InfuraProvider('homestead', {
-      projectId: settings.infuraProjectId,
-      projectSecret: settings.infuraProjectSecret,
-    });
-  }
+  constructor(private addressYaml: any, private provider: providers.BaseProvider) {}
 
   getRewardBalanceWizard(): Scenes.WizardScene<Scenes.WizardContext> {
     const stepHandler = new Composer<Scenes.WizardContext>();
@@ -45,21 +36,30 @@ export class RewardBalanceWizard {
     );
     const currentOcrContractRewards = await this.getCurrentRewardsOnContracts(
       this.addressYaml.ocr.contracts,
-      OCR_ABI,
+      OcrAggregator.abi,
       false
     );
     const currentOcrPayeeRewards = await this.getCurrentOcrPayeeRewards();
     const totalBalance: BigNumber = currentOcrContractRewards.add(currentFluxRewards).add(currentOcrPayeeRewards);
-    await ctx.reply(`Total balance on OCR-contracts: ${utils.formatEther(currentOcrContractRewards)} LINK`);
-    await ctx.reply(`Total balance on OCR-payee-address: ${utils.formatEther(currentOcrPayeeRewards)} LINK`);
-    await ctx.reply(`Total balance on Flux-contracts: ${utils.formatEther(currentFluxRewards)} LINK`);
-    await ctx.reply(`Current total balance is: ${utils.formatEther(totalBalance)} LINK`);
+    await ctx.reply(
+      `Total balance on OCR-contracts: ${this.getLinkValueWithTwoDecimals(currentOcrContractRewards)} LINK`
+    );
+    await ctx.reply(
+      `Total balance on OCR-payee-address: ${this.getLinkValueWithTwoDecimals(currentOcrPayeeRewards)} LINK`
+    );
+    await ctx.reply(`Total balance on Flux-contracts: ${this.getLinkValueWithTwoDecimals(currentFluxRewards)} LINK`);
+    await ctx.reply(`Current total balance is: ${this.getLinkValueWithTwoDecimals(totalBalance)} LINK`);
+  }
+
+  private getLinkValueWithTwoDecimals(linkInWei: BigNumber): string {
+    const valueString: string = utils.formatEther(linkInWei);
+    return valueString.slice(0, valueString.indexOf('.') + 3);
   }
 
   private async getCurrentRewardsOnContracts(contracts: string[], abi: any, isFlux: boolean): Promise<BigNumber> {
     let totalReward: BigNumber = BigNumber.from('0');
     for (const feedAddress of contracts) {
-      const contract: Contract = new Contract(feedAddress, abi, this.infuraProvider);
+      const contract: Contract = new Contract(feedAddress, abi, this.provider);
       if (isFlux) {
         totalReward = totalReward.add(await contract.withdrawablePayment(this.addressYaml.flux.oracle));
       } else {
@@ -70,13 +70,9 @@ export class RewardBalanceWizard {
   }
 
   private async getCurrentOcrPayeeRewards(): Promise<BigNumber> {
-    const contract: Contract = new Contract(this.addressYaml.link_token_contract, LinkToken.abi, this.infuraProvider);
+    const contract: Contract = new Contract(this.addressYaml.link_token_contract, LinkToken.abi, this.provider);
     return await contract.balanceOf(this.addressYaml.ocr.payee);
   }
-
-  // private async getCurrentRunlogReward(): Promise<BigNumber> {
-  //   const contract: Contract = new Contract(this.addressYaml.runlog.owner, RunlogAggregator.abi, this.infuraProvider);
-  // }
 }
 
 // export default new RewardBalanceWizard().getCurrentRewardBalanceWizard();
