@@ -16,6 +16,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@types/node": "^14.14.21",
     "arg": "^5.0.0",
     "ethers": "^5.0.26",
     "telegraf": "^4.0.1",
@@ -28,7 +29,6 @@
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-typescript": "^7.12.7",
-    "@types/node": "^14.14.21",
     "@typescript-eslint/eslint-plugin": "^4.13.0",
     "@typescript-eslint/parser": "^4.13.0",
     "eslint": "^7.17.0",
