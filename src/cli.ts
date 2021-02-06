@@ -2,7 +2,8 @@ import arg from 'arg';
 import { providers } from 'ethers';
 
 export interface CommandLineArgs {
-  eligibleChats: string;
+  chatbotToken: string;
+  eligibleChats: number[];
   provider: providers.BaseProvider;
 }
 
@@ -15,16 +16,27 @@ export class CLI {
 
   parse(): CommandLineArgs {
     this.printHelp();
-    if (!this.args['--eligible-chats']) throw new Error('Missing required argument: --eligible-chats');
-    // split string and parse id's to numbers
     const cliArgs: CommandLineArgs = {
-      eligibleChats: this.args['--eligible-chats'],
+      chatbotToken: this.getChatbotToken(),
+      eligibleChats: this.getEligibleChats(),
       provider: this.getCorrectProvider(),
     };
     return cliArgs;
   }
 
-  getCorrectProvider(): providers.BaseProvider {
+  private getEligibleChats(): number[] {
+    if (!this.args['--eligible-chats']) throw new Error('Missing required argument: --eligible-chats');
+    const eligibleChatsString: string = this.args['--eligible-chats'];
+    return eligibleChatsString.split(',').map((chatId) => parseInt(chatId));
+  }
+
+  private getChatbotToken(): string {
+    this.printHelp();
+    if (!this.args['--bot-token']) throw new Error('Missing required argument: --bot-token');
+    return this.args['--bot-token'];
+  }
+
+  private getCorrectProvider(): providers.BaseProvider {
     this.printHelp();
     const url: string = this.args['--url'];
     let generalProvider: providers.BaseProvider;
@@ -50,6 +62,7 @@ export class CLI {
   private getArgs(): any {
     return arg({
       //Types'
+      '--bot-token': String,
       '--eligible-chats': String,
       '--help': Boolean,
       '--infura-project-id': String,
@@ -57,6 +70,7 @@ export class CLI {
       '--url': String,
 
       // Aliases
+      '-b': '--bot-token',
       '-e': '--eligible-chats',
       '-h': '--help',
       '-i': '--infura-project-id',
@@ -69,6 +83,7 @@ export class CLI {
     if (this.args['--help']) {
       console.log(`chainlink-node-operator-telegram-bot [args]\n`);
       console.log('options:');
+      console.log('-b,--bot-token\t\t\tChat-bot API token');
       console.log(
         '-e,--eligible-chats\t\tcomma separated list with chat-ids on which the bot should work\n\t\t\t\tif chat-id startswith "-" do not include it'
       );

@@ -1,14 +1,13 @@
-import * as settings from '../settings.json';
 import { Telegraf, Scenes, session, Markup, Context } from 'telegraf';
 import { RewardBalanceWizard } from './modules/reward/total_wizard';
 import YAML from 'yaml';
+import { cliOptions } from './cli';
 import fs from 'fs';
 import path from 'path';
 
 // import { HttpsProxyAgent } from 'https-proxy-agent';
 
 const MODULE1: string = '💰 Current total rewards';
-const ELIGIBLE_CHAT: number = -562433941;
 
 class ChainlinkBot {
   private addressYaml: any;
@@ -17,13 +16,13 @@ class ChainlinkBot {
 
   constructor() {
     this.readAddressYaml();
-    this.bot = new Telegraf<Scenes.WizardContext>(settings.token);
+    this.bot = new Telegraf<Scenes.WizardContext>(cliOptions.chatbotToken);
     this.setupWizardInstances();
     this.setupBot();
   }
 
   private setupWizardInstances(): void {
-    this.rewardBalanceWizard = new RewardBalanceWizard(this.addressYaml);
+    this.rewardBalanceWizard = new RewardBalanceWizard(this.addressYaml, cliOptions.provider);
   }
 
   private setupBot() {
@@ -63,7 +62,7 @@ class ChainlinkBot {
 
   private isChatEligible(ctx: Context): boolean {
     if (ctx.chat?.id) {
-      if (Math.abs(ctx.chat?.id) != ELIGIBLE_CHAT) {
+      if (!cliOptions.eligibleChats.includes(Math.abs(ctx.chat?.id))) {
         ctx.replyWithMarkdownV2('*Sorry, this chat is not eligible to work with me\\!*');
         return false;
       }
