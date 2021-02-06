@@ -3,7 +3,7 @@ import ChainlinkBot from './bot';
 // import { cliOptions } from './cli';
 // import { logger } from './logger';
 
-export class Server {
+export class Main {
   private chainlinkBot: Telegraf<Scenes.WizardContext>;
 
   constructor() {
