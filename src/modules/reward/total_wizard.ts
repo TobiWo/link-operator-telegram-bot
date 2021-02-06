@@ -74,5 +74,3 @@ export class RewardBalanceWizard {
     return await contract.balanceOf(this.addressYaml.ocr.payee);
   }
 }
-
-// export default new RewardBalanceWizard().getCurrentRewardBalanceWizard();
