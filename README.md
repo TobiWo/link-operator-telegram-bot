@@ -24,3 +24,4 @@ The present config assumes that you are running a geth-instance as docker-contai
 ## Start the bot
 
 To get information about necessary cli-arguments start the compose with `--help` or check the summary table below (*TODO*).
+Furhtermore, the compose mounts a folder `resources` into the dist-folder within the container. The `resources` folder needs to have a file called `address_info.yml`. This file contains all you operator related addresses. You can find a template of this file within the `resources` folder in the repo.
