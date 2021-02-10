@@ -1,7 +1,4 @@
 link_token_contract: '<link_token_contract_address>'
-runlog:
-  oracle_contract: '<oracle_contract_address>'
-  owner: '<oracle_contract_owner>'
 flux:
   oracle: '<oracle_address>'
   contracts: # list of contracts
