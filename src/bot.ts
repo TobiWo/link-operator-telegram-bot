@@ -75,7 +75,7 @@ export class ChainlinkBot {
   }
 
   private readAddressYaml(): void {
-    const contractAddressesFilePath: string = path.join(__dirname, '..', 'resources/address_info.yml');
+    const contractAddressesFilePath: string = path.join(__dirname, '..', 'resources/external/address_info.yml');
     const file: string = fs.readFileSync(contractAddressesFilePath, 'utf8');
     this.addressYaml = YAML.parse(file);
   }
