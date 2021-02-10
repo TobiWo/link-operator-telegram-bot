@@ -4,23 +4,27 @@ import * as OcrAggregator from '../../../artifacts/OCR.json';
 // import * as RunlogAggregator from '../../../artifacts/Oracle.json';
 import { Scenes, Composer } from 'telegraf';
 import { providers, Contract, BigNumber, utils } from 'ethers';
+import { AddressInfo } from '../../interface/address_info';
 
 export class RewardBalanceWizard {
-  constructor(private addressYaml: any, private provider: providers.BaseProvider) {}
+  constructor(private addressYaml: AddressInfo, private provider: providers.BaseProvider) {}
 
-  getRewardBalanceWizard(): Scenes.WizardScene<Scenes.WizardContext> {
+  getWizard(): Scenes.WizardScene<Scenes.WizardContext> {
     const stepHandler = new Composer<Scenes.WizardContext>();
     stepHandler.command('currentTotalBalance', async (ctx) => {
       await this.handleRewardBalanceContext(ctx);
-      return ctx.scene.leave();
     });
     stepHandler.command('ctb', async (ctx) => {
       await this.handleRewardBalanceContext(ctx);
+    });
+    stepHandler.command('leave', async (ctx) => {
+      await ctx.reply('Leaving module!');
       return ctx.scene.leave();
     });
     stepHandler.help(async (ctx) => {
       await ctx.reply(
-        'Available commands:\n/currentTotalBalance (/ctb) - total balance of rewards on all active feeds'
+        'Available commands:\n/currentTotalBalance (/ctb) - total balance of rewards on all active feeds\n\
+/leave - leaves the current module'
       );
     });
     const rewardWizard = new Scenes.WizardScene('reward-wizard', stepHandler);
