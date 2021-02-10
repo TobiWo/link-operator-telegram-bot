@@ -4,12 +4,14 @@ Telegram bot for Chainlink node operators to get information about active feeds.
 
 ## Build the image
 
-I recommend to run the bot as container. Therefore a Dockerfile is included in this repo. Just head to the folder `docker`. The building process needs two build-args:
+I recommend to run the bot as container. Therefore a Dockerfile is included in this repo. Just head to the folder `docker` to check the file. The building process needs two build-args:
 
 * USER_ID
 * GROUP_ID
 
-This is because the container does not run as root and to prevent file access issues the user-id and group-id for the user of the container are assigned to the actual host user ids.
+Since the bot needs an external settings file (see below) which needs to be mounted into the container (see docker-compose) the new user and group will be assigned to the same ids like your host-user/host-group. This prevents any file permission issues.
+
+Build the image with the command: `docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t link-operator-telegram-bot:latest -f docker/Dockerfile .`
 
 ## Create a bot
 
