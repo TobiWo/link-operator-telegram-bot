@@ -1,4 +1,6 @@
 import { Telegraf, Scenes, session, Markup, Context } from 'telegraf';
+import { AddressInfo } from './interface/address_info';
+import { FluxFeedRewardWizard } from './modules/reward/listening_flux_wizard';
 import { RewardBalanceWizard } from './modules/reward/total_wizard';
 import YAML from 'yaml';
 import { cliOptions } from './cli';
@@ -8,25 +10,39 @@ import path from 'path';
 // import { HttpsProxyAgent } from 'https-proxy-agent';
 
 const MODULE1: string = '💰 Current total rewards';
+const MODULE2: string = '🦻 Flux feed reward details';
 
-class ChainlinkBot {
-  private addressYaml: any;
+export class ChainlinkBot {
+  private addressYaml: AddressInfo = {
+    flux: { contracts: [], oracle: '' },
+    link_token_contract: '',
+    ocr: { contracts: [], oracle: '', payee: '' },
+  };
   bot: Telegraf<Scenes.WizardContext>;
   private rewardBalanceWizard!: RewardBalanceWizard;
+  private fluxFeedRewardWizard!: FluxFeedRewardWizard;
 
   constructor() {
     this.readAddressYaml();
     this.bot = new Telegraf<Scenes.WizardContext>(cliOptions.chatbotToken);
-    this.setupWizardInstances();
+    this.createWizardInstances();
     this.setupBot();
   }
 
-  private setupWizardInstances(): void {
+  async initWizardInstances(): Promise<void> {
+    await this.fluxFeedRewardWizard.init();
+  }
+
+  private createWizardInstances(): void {
     this.rewardBalanceWizard = new RewardBalanceWizard(this.addressYaml, cliOptions.provider);
+    this.fluxFeedRewardWizard = new FluxFeedRewardWizard(this.addressYaml, cliOptions.provider);
   }
 
   private setupBot() {
-    const stage = new Scenes.Stage<Scenes.WizardContext>([this.rewardBalanceWizard.getRewardBalanceWizard()]);
+    const stage = new Scenes.Stage<Scenes.WizardContext>([
+      this.rewardBalanceWizard.getWizard(),
+      this.fluxFeedRewardWizard.getWizard(),
+    ]);
     this.bot.use(session());
     this.bot.use(stage.middleware());
 
@@ -42,7 +58,7 @@ class ChainlinkBot {
       if (this.isChatEligible(ctx)) {
         await ctx.replyWithMarkdownV2(
           '*Choose your module*',
-          Markup.keyboard([[MODULE1]])
+          Markup.keyboard([[MODULE1, MODULE2]])
             .oneTime()
             .resize()
         );
@@ -51,6 +67,10 @@ class ChainlinkBot {
     this.bot.hears(MODULE1, (ctx) => {
       ctx.scene.enter('reward-wizard');
       ctx.replyWithMarkdownV2('*Entering reward fetcher module\\!*\nType `/help` for all available commands');
+    });
+    this.bot.hears(MODULE2, (ctx) => {
+      ctx.scene.enter('flux-feed-wizard');
+      ctx.replyWithMarkdownV2('*Entering flux feed wizard\\!*\nType `/help` for all available commands');
     });
   }
 
@@ -71,6 +91,3 @@ class ChainlinkBot {
     return false;
   }
 }
-
-const chainlinkBot = new ChainlinkBot();
-export default chainlinkBot;
