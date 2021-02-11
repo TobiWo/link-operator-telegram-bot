@@ -58,7 +58,7 @@ export class FluxFeedRewardWizard {
       if (feedStatus) {
         if (feedStatus.contract.listeners(ROUND_DETAILS_UPDATED_NAME).length != 0) {
           await ctx.reply('You already listening on flux contracts for reward changes!');
-          break;
+          return;
         }
         feedStatus.contract.on(ROUND_DETAILS_UPDATED_NAME, async (paymentAmount) => {
           await ctx.reply(`New feed-reward on ${address}: ${this.getLinkValueWithTwoDecimals(paymentAmount)} LINK`);
