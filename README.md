@@ -27,3 +27,9 @@ The present config assumes that you are running a geth-instance as docker-contai
 
 To get information about necessary cli-arguments start the compose with `--help` or check the summary table below (*TODO*).
 Furhtermore, the compose mounts a folder `resources` into the dist-folder within the container. The `resources` folder needs to have a file called `address_info.yml`. This file contains all you operator related addresses. You can find a template of this file within the `resources` folder in the repo.
+
+### CLI arguments
+
+* `--eligible-chats` if only one chat and this chat-id is negative number you need to use the long argument form in the form `--eligible-chats=-1234`
+* same is true for multiple negative chat ids
+* if multiple chat ids and you want to use `-e` or `--eligible-chats` without the equal sign, put the positive number in front
