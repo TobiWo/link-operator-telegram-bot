@@ -1,3 +1,4 @@
+import * as cliText from '../resources/cli.json';
 import arg from 'arg';
 import { providers } from 'ethers';
 
@@ -25,26 +26,29 @@ export class CLI {
   }
 
   private getEligibleChats(): number[] {
-    if (!this.args['--eligible-chats']) throw new Error('Missing required argument: --eligible-chats');
-    const eligibleChatsString: string = this.args['--eligible-chats'];
+    if (!this.args[cliText.long.eligible_chats])
+      throw new Error(`${cliText.errors.missing_arg} ${cliText.long.eligible_chats}`);
+    const eligibleChatsString: string = this.args[cliText.long.eligible_chats];
     return eligibleChatsString.split(',').map((chatId) => parseInt(chatId));
   }
 
   private getChatbotToken(): string {
     this.printHelp();
-    if (!this.args['--bot-token']) throw new Error('Missing required argument: --bot-token');
-    return this.args['--bot-token'];
+    if (!this.args[cliText.long.bot_token]) throw new Error(`${cliText.errors.missing_arg} ${cliText.long.bot_token}`);
+    return this.args[cliText.long.bot_token];
   }
 
   private getCorrectProvider(): providers.BaseProvider {
     this.printHelp();
-    const url: string = this.args['--url'];
+    const url: string = this.args[cliText.long.url];
     let generalProvider: providers.BaseProvider;
     if (!url) {
-      const infuraProjectSecret: string = this.args['--infura-project-secret'];
-      const infuraProjectId: string = this.args['--infura-project-id'];
+      const infuraProjectSecret: string = this.args[cliText.long.infura_project_secret];
+      const infuraProjectId: string = this.args[cliText.long.infura_project_id];
       if (!infuraProjectId || !infuraProjectSecret)
-        throw new Error('Missing required argument: --infura-project-id and/or --infura-project-secret');
+        throw new Error(
+          `${cliText.errors.missing_arg} ${cliText.long.infura_project_id} and/or ${cliText.long.infura_project_secret}`
+        );
       generalProvider = new providers.InfuraProvider('homestead', {
         projectId: infuraProjectId,
         projectSecret: infuraProjectSecret,
@@ -54,7 +58,7 @@ export class CLI {
     } else if (url.includes('http')) {
       generalProvider = new providers.JsonRpcProvider(url);
     } else {
-      throw Error('URL should be undefined, a websocket-connection or a http-connection');
+      throw Error(cliText.errors.url);
     }
     return generalProvider;
   }
@@ -80,17 +84,21 @@ export class CLI {
   }
 
   private printHelp() {
-    if (this.args['--help']) {
-      console.log(`chainlink-node-operator-telegram-bot [args]\n`);
-      console.log('options:');
-      console.log('-b,--bot-token\t\t\tChat-bot API token');
+    if (this.args[cliText.long.help]) {
+      console.log(`${cliText.help.explainer}\n`);
+      console.log(cliText.help.options);
+      console.log(`${cliText.short.bot_token},${cliText.long.bot_token}\t\t\t${cliText.help.descriptions.bot_token}`);
       console.log(
-        '-e,--eligible-chats\t\tcomma separated list with chat-ids on which the bot should work\n\t\t\t\tif chat-id startswith "-" do not include it'
+        `${cliText.short.eligible_chats},${cliText.long.eligible_chats}\t\t${cliText.help.descriptions.eligible_chats}`
       );
-      console.log('-u,--url\t\t\tblockchain client connection url (optional)');
-      console.log('-i,--infura-project-id\t\tinfura project id (optional if url is set)');
-      console.log('-j,--infura-project-secret\tinfura project secret (optional if url is set)');
-      console.log('-h,--help\t\t\tprint help');
+      console.log(`${cliText.short.url},${cliText.long.url}\t\t\t${cliText.help.descriptions.url}`);
+      console.log(
+        `${cliText.short.infura_project_id},${cliText.long.infura_project_id}\t\t${cliText.help.descriptions.infura_project_id}`
+      );
+      console.log(
+        `${cliText.short.infura_project_secret},${cliText.long.infura_project_secret}\t${cliText.help.descriptions.infura_project_secret}`
+      );
+      console.log(`${cliText.short.help},${cliText.long.help}\t\t\t${cliText.help.descriptions.help}`);
       process.exit();
     }
   }

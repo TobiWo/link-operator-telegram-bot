@@ -1,0 +1,26 @@
+{
+  "total_wizard": {
+    "name": "reward_wizard",
+    "commands": {
+      "long": {
+        "current_total_balance": "currentTotalBalance",
+        "leave": "leave"
+      },
+      "short": {
+        "current_total_balance": "ctb"
+      }
+    },
+    "replies": {
+      "help": "Available commands:\n/currentTotalBalance (/ctb) - total balance of rewards on all active feeds\n/leave - leaves the current module",
+      "leaving": "Leaving module!",
+      "fetching": "Fetching rewards...",
+      "total_ocr_contrats": "Total balance on OCR-contracts:",
+      "total_ocr_payee": "Total balance on OCR-payee-address",
+      "total_flux": "Total balance on Flux-contracts:",
+      "total": "Current total balance is:"
+    }
+  },
+  "flux_feed_wizard": {
+    "name": "flux-feed-wizard"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "long": {
+    "eligible_chats": "--eligible-chats",
+    "bot_token": "--bot-token",
+    "url": "--url",
+    "infura_project_id": "--infura-project-id",
+    "infura_project_secret": "--infura-project-secret",
+    "help": "--help"
+  },
+  "short": {
+    "eligible_chats": "-e",
+    "bot_token": "-b",
+    "url": "-u",
+    "infura_project_id": "-i",
+    "infura_project_secret": "-j",
+    "help": "-h"
+  },
+  "errors": {
+    "missing_arg": "Missing required argument:",
+    "url": "URL should be undefined, a websocket-connection or a http-connection"
+  },
+  "help": {
+    "explainer": "chainlink-node-operator-telegram-bot [args]",
+    "options": "options:",
+    "descriptions": {
+      "bot_token": "Chat-bot API token",
+      "eligible_chats": "comma separated list with chat-ids on which the bot should work",
+      "url": "blockchain client connection url (optional)",
+      "infura_project_id": "infura project id (optional if url is set)",
+      "infura_project_secret": "infura project secret (optional if url is set)",
+      "help": "print help"
+    }
+  }
+}

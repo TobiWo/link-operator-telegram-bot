@@ -1,3 +1,5 @@
+import * as botText from '../resources/bot.json';
+import * as wizardText from '../resources/wizard.json';
 import { Telegraf, Scenes, session, Markup, Context } from 'telegraf';
 import { AddressInfo } from './interface/address_info';
 import { FluxFeedRewardWizard } from './modules/reward/listening_flux_wizard';
@@ -6,11 +8,6 @@ import YAML from 'yaml';
 import { cliOptions } from './cli';
 import fs from 'fs';
 import path from 'path';
-
-// import { HttpsProxyAgent } from 'https-proxy-agent';
-
-const MODULE1: string = '💰 Current total rewards';
-const MODULE2: string = '🦻 Flux feed reward details';
 
 export class ChainlinkBot {
   private addressYaml: AddressInfo = {
@@ -48,29 +45,27 @@ export class ChainlinkBot {
 
     this.bot.help((ctx) => {
       if (this.isChatEligible(ctx)) {
-        ctx.replyWithMarkdownV2(
-          'This bot is segmented into several modules with certain funtionalities\\. Type `link` to start the bot\\.'
-        );
+        ctx.replyWithMarkdownV2(botText.messages.help);
       }
     });
 
-    this.bot.hears('link', async (ctx) => {
+    this.bot.hears(botText.commands.link, async (ctx) => {
       if (this.isChatEligible(ctx)) {
         await ctx.replyWithMarkdownV2(
-          '*Choose your module*',
-          Markup.keyboard([[MODULE1, MODULE2]])
+          botText.messages.choose_module,
+          Markup.keyboard([[botText.module_names.total_reward, botText.module_names.flux_details]])
             .oneTime()
             .resize()
         );
       }
     });
-    this.bot.hears(MODULE1, (ctx) => {
-      ctx.scene.enter('reward-wizard');
-      ctx.replyWithMarkdownV2('*Entering reward fetcher module\\!*\nType `/help` for all available commands');
+    this.bot.hears(botText.module_names.total_reward, (ctx) => {
+      ctx.scene.enter(wizardText.total_wizard.name);
+      ctx.replyWithMarkdownV2(botText.messages.enter_total_reward);
     });
-    this.bot.hears(MODULE2, (ctx) => {
-      ctx.scene.enter('flux-feed-wizard');
-      ctx.replyWithMarkdownV2('*Entering flux feed wizard\\!*\nType `/help` for all available commands');
+    this.bot.hears(botText.module_names.flux_details, (ctx) => {
+      ctx.scene.enter(wizardText.flux_feed_wizard.name);
+      ctx.replyWithMarkdownV2(botText.messages.enter_flux_details);
     });
   }
 
@@ -81,9 +76,9 @@ export class ChainlinkBot {
   }
 
   private isChatEligible(ctx: Context): boolean {
-    if (ctx.chat?.id) {
-      if (!cliOptions.eligibleChats.includes(Math.abs(ctx.chat?.id))) {
-        ctx.replyWithMarkdownV2('*Sorry, this chat is not eligible to work with me\\!*');
+    if (ctx.chat) {
+      if (!cliOptions.eligibleChats.includes(ctx.chat.id)) {
+        ctx.replyWithMarkdownV2(botText.messages.is_chat_eligible);
         return false;
       }
       return true;

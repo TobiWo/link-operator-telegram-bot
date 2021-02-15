@@ -1,7 +1,7 @@
 import * as FluxAggregator from '../../../artifacts/FluxAggregator.json';
 import * as LinkToken from '../../../artifacts/LinkToken.json';
 import * as OcrAggregator from '../../../artifacts/OCR.json';
-// import * as RunlogAggregator from '../../../artifacts/Oracle.json';
+import * as wizardText from '../../../resources/wizard.json';
 import { Scenes, Composer } from 'telegraf';
 import { providers, Contract, BigNumber, utils } from 'ethers';
 import { AddressInfo } from '../../interface/address_info';
@@ -11,28 +11,25 @@ export class RewardBalanceWizard {
 
   getWizard(): Scenes.WizardScene<Scenes.WizardContext> {
     const stepHandler = new Composer<Scenes.WizardContext>();
-    stepHandler.command('currentTotalBalance', async (ctx) => {
+    stepHandler.command(wizardText.total_wizard.commands.long.current_total_balance, async (ctx) => {
       await this.handleRewardBalanceContext(ctx);
     });
-    stepHandler.command('ctb', async (ctx) => {
+    stepHandler.command(wizardText.total_wizard.commands.short.current_total_balance, async (ctx) => {
       await this.handleRewardBalanceContext(ctx);
     });
-    stepHandler.command('leave', async (ctx) => {
-      await ctx.reply('Leaving module!');
+    stepHandler.command(wizardText.total_wizard.commands.long.leave, async (ctx) => {
+      await ctx.reply(wizardText.total_wizard.replies.leaving);
       return ctx.scene.leave();
     });
     stepHandler.help(async (ctx) => {
-      await ctx.reply(
-        'Available commands:\n/currentTotalBalance (/ctb) - total balance of rewards on all active feeds\n\
-/leave - leaves the current module'
-      );
+      await ctx.reply(wizardText.total_wizard.replies.help);
     });
-    const rewardWizard = new Scenes.WizardScene('reward-wizard', stepHandler);
+    const rewardWizard = new Scenes.WizardScene(wizardText.total_wizard.name, stepHandler);
     return rewardWizard;
   }
 
   private async handleRewardBalanceContext(ctx: Scenes.WizardContext): Promise<void> {
-    await ctx.reply('Fetching rewards...');
+    await ctx.reply(wizardText.total_wizard.replies.fetching);
     const currentFluxRewards = await this.getCurrentRewardsOnContracts(
       this.addressYaml.flux.contracts,
       FluxAggregator.abi,
@@ -46,13 +43,19 @@ export class RewardBalanceWizard {
     const currentOcrPayeeRewards = await this.getCurrentOcrPayeeRewards();
     const totalBalance: BigNumber = currentOcrContractRewards.add(currentFluxRewards).add(currentOcrPayeeRewards);
     await ctx.reply(
-      `Total balance on OCR-contracts: ${this.getLinkValueWithTwoDecimals(currentOcrContractRewards)} LINK`
+      `${wizardText.total_wizard.replies.total_ocr_contrats} ${this.getLinkValueWithTwoDecimals(
+        currentOcrContractRewards
+      )} LINK`
     );
     await ctx.reply(
-      `Total balance on OCR-payee-address: ${this.getLinkValueWithTwoDecimals(currentOcrPayeeRewards)} LINK`
+      `${wizardText.total_wizard.replies.total_ocr_payee} ${this.getLinkValueWithTwoDecimals(
+        currentOcrPayeeRewards
+      )} LINK`
     );
-    await ctx.reply(`Total balance on Flux-contracts: ${this.getLinkValueWithTwoDecimals(currentFluxRewards)} LINK`);
-    await ctx.reply(`Current total balance is: ${this.getLinkValueWithTwoDecimals(totalBalance)} LINK`);
+    await ctx.reply(
+      `${wizardText.total_wizard.replies.total_flux} ${this.getLinkValueWithTwoDecimals(currentFluxRewards)} LINK`
+    );
+    await ctx.reply(`${wizardText.total_wizard.replies.total} ${this.getLinkValueWithTwoDecimals(totalBalance)} LINK`);
   }
 
   private getLinkValueWithTwoDecimals(linkInWei: BigNumber): string {
