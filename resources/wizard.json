@@ -21,6 +21,28 @@
     }
   },
   "flux_feed_wizard": {
-    "name": "flux-feed-wizard"
+    "name": "flux-feed-wizard",
+    "commands": {
+      "long": {
+        "start_listening": "listenOnRewardChanges",
+        "stop_listening": "stopListening",
+        "average_reward": "averageFluxReward",
+        "leave": "leave"
+      },
+      "short": {
+        "start_listening": "lrc",
+        "stop_listening": "sl",
+        "average_reward": "avr"
+      }
+    },
+    "replies": {
+      "help": "Available commands:\n/listenOnRewardChanges (/lrc) - listen to reward changes on every flux feed\n/stopListening (/sl) - stops listening on reward changes\n/averageFluxReward (/avr) - prints the current average feed-reward\n/leave - leaves the current module",
+      "leaving": "Leaving module!",
+      "already_listening": "You already listening on flux contracts for reward changes!",
+      "new_feed_reward": "New feed-reward on flux-feed",
+      "started_listening": "Started listening on all flux-contracts!",
+      "stopped_listening": "Stopped listening on all flux-contracts!",
+      "average_feed_reward": "Current average feed-reward:"
+    }
   }
 }
