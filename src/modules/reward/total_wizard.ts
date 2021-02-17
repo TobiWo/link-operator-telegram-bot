@@ -2,9 +2,9 @@ import * as FluxAggregator from '../../../artifacts/FluxAggregator.json';
 import * as LinkToken from '../../../artifacts/LinkToken.json';
 import * as OcrAggregator from '../../../artifacts/OCR.json';
 import * as wizardText from '../../../resources/wizard.json';
+import { AddressInfo, ContractInfo } from '../../interface/address_info';
 import { Scenes, Composer } from 'telegraf';
 import { providers, Contract, BigNumber, utils } from 'ethers';
-import { AddressInfo } from '../../interface/address_info';
 
 export class RewardBalanceWizard {
   constructor(private addressYaml: AddressInfo, private provider: providers.BaseProvider) {}
@@ -63,9 +63,9 @@ export class RewardBalanceWizard {
     return valueString.slice(0, valueString.indexOf('.') + 3);
   }
 
-  private async getCurrentRewardsOnContracts(contracts: string[], abi: any, isFlux: boolean): Promise<BigNumber> {
+  private async getCurrentRewardsOnContracts(contracts: ContractInfo[], abi: any, isFlux: boolean): Promise<BigNumber> {
     let totalReward: BigNumber = BigNumber.from('0');
-    for (const feedAddress of contracts) {
+    for (const feedAddress of contracts.map((item) => item.address)) {
       const contract: Contract = new Contract(feedAddress, abi, this.provider);
       if (isFlux) {
         totalReward = totalReward.add(await contract.withdrawablePayment(this.addressYaml.flux.oracle));

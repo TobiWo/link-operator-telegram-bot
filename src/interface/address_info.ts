@@ -4,11 +4,16 @@ export interface AddressInfo {
   ocr: OcrAddresses;
 }
 
-export interface OcrAddresses extends Addresses {
+interface OcrAddresses extends Addresses {
   payee: string;
 }
 
 interface Addresses {
   oracle: string;
-  contracts: string[];
+  contracts: ContractInfo[];
+}
+
+export interface ContractInfo {
+  address: string;
+  name: string;
 }

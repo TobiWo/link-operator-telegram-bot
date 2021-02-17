@@ -10,11 +10,7 @@ import fs from 'fs';
 import path from 'path';
 
 export class ChainlinkBot {
-  private addressYaml: AddressInfo = {
-    flux: { contracts: [], oracle: '' },
-    link_token_contract: '',
-    ocr: { contracts: [], oracle: '', payee: '' },
-  };
+  private addressYaml!: AddressInfo;
   bot: Telegraf<Scenes.WizardContext>;
   private rewardBalanceWizard!: RewardBalanceWizard;
   private fluxFeedRewardWizard!: FluxFeedRewardWizard;
@@ -70,9 +66,14 @@ export class ChainlinkBot {
   }
 
   private readAddressYaml(): void {
-    const contractAddressesFilePath: string = path.join(__dirname, '..', 'resources/external/address_info.yml');
-    const file: string = fs.readFileSync(contractAddressesFilePath, 'utf8');
-    this.addressYaml = YAML.parse(file);
+    try {
+      const contractAddressesFilePath: string = path.join(__dirname, '..', 'resources/external/address_info.yml');
+      const file: string = fs.readFileSync(contractAddressesFilePath, 'utf8');
+      this.addressYaml = YAML.parse(file);
+    } catch (error) {
+      console.log(error.message);
+      process.exit();
+    }
   }
 
   private isChatEligible(ctx: Context): boolean {

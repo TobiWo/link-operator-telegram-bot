@@ -2,11 +2,15 @@ link_token_contract: '<link_token_contract_address>'
 flux:
   oracle: '<oracle_address>'
   contracts: # list of contracts
-    - '<entry1>'
-    - '<entry2>'
+    - address: '<entry1_address>'
+      name: '<entry1_name>'
+    - address: '<entry2_address>'
+      name: '<entry2_name>'
 ocr:
   oracle: '<oracle_address>'
   payee: '<ocr_payee_address>'
   contracts: # list of contracts
-    - '<entry1>'
-    - '<entry2>'
+    - address: '<entry1_address>'
+      name: '<entry1_name>'
+    - address: '<entry2_address>'
+      name: '<entry2_name>'
