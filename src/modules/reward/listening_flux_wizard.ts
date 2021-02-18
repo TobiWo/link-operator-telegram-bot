@@ -3,11 +3,12 @@ import * as wizardText from '../../../resources/wizard.json';
 import { Scenes, Composer } from 'telegraf';
 import { providers, Contract, BigNumber, utils } from 'ethers';
 import { AddressInfo } from '../../interface/address_info';
+import { FluxFeedRewardStatus } from '../../interface/feed_reward_status';
 
 const ROUND_DETAILS_UPDATED_NAME: string = 'RoundDetailsUpdated';
 
 export class FluxFeedRewardWizard {
-  private currentFeedStatus: Map<string, FluxFeedStatus> = new Map();
+  private currentFeedStatus: Map<string, FluxFeedRewardStatus> = new Map();
 
   constructor(private addressYaml: AddressInfo, private provider: providers.BaseProvider) {
     this.createFluxContracts();
@@ -50,7 +51,7 @@ export class FluxFeedRewardWizard {
 
   private async feedRewardListeningHandler(ctx: Scenes.WizardContext): Promise<void> {
     for (const name of this.currentFeedStatus.keys()) {
-      const feedStatus: FluxFeedStatus | undefined = this.currentFeedStatus.get(name);
+      const feedStatus: FluxFeedRewardStatus | undefined = this.currentFeedStatus.get(name);
       if (feedStatus) {
         if (feedStatus.contract.listeners(ROUND_DETAILS_UPDATED_NAME).length != 0) {
           await ctx.reply(wizardText.flux_feed_wizard.replies.already_listening);
@@ -93,7 +94,7 @@ export class FluxFeedRewardWizard {
   }
 
   private updateCurrentFeedReward(name: string, newReward: BigNumber): void {
-    const fluxFeedStatus: FluxFeedStatus | undefined = this.currentFeedStatus.get(name);
+    const fluxFeedStatus: FluxFeedRewardStatus | undefined = this.currentFeedStatus.get(name);
     if (fluxFeedStatus && !fluxFeedStatus.currentReward.eq(newReward)) {
       fluxFeedStatus.currentReward = newReward;
       this.currentFeedStatus.set(name, fluxFeedStatus);
@@ -118,9 +119,4 @@ export class FluxFeedRewardWizard {
     const valueString: string = utils.formatEther(linkInWei);
     return valueString.slice(0, valueString.indexOf('.') + 3);
   }
-}
-
-export interface FluxFeedStatus {
-  contract: Contract;
-  currentReward: BigNumber;
 }
