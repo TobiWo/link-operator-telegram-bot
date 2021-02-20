@@ -1,6 +1,6 @@
 import * as FluxAggregator from '../../../artifacts/FluxAggregator.json';
 import * as wizardText from '../../../resources/wizard.json';
-import { Scenes, Composer } from 'telegraf';
+import { Scenes, Composer, Context } from 'telegraf';
 import { providers, Contract, BigNumber, utils } from 'ethers';
 import { AddressInfo } from '../../interface/address_info';
 import { FluxFeedRewardStatus } from '../../interface/feed_reward_status';
@@ -21,22 +21,22 @@ export class FluxFeedRewardWizard {
   getWizard(): Scenes.WizardScene<Scenes.WizardContext> {
     const stepHandler = new Composer<Scenes.WizardContext>();
     stepHandler.command(wizardText.flux_feed_wizard.commands.long.start_listening, async (ctx) => {
-      this.feedRewardListeningHandler(ctx);
+      this.feedRewardListeningStep(ctx);
     });
     stepHandler.command(wizardText.flux_feed_wizard.commands.short.start_listening, async (ctx) => {
-      this.feedRewardListeningHandler(ctx);
+      this.feedRewardListeningStep(ctx);
     });
     stepHandler.command(wizardText.flux_feed_wizard.commands.long.stop_listening, async (ctx) => {
-      this.stopFeedRewardListeningHandler(ctx);
+      this.stopFeedRewardListeningStep(ctx);
     });
     stepHandler.command(wizardText.flux_feed_wizard.commands.short.stop_listening, async (ctx) => {
-      this.stopFeedRewardListeningHandler(ctx);
+      this.stopFeedRewardListeningStep(ctx);
     });
     stepHandler.command(wizardText.flux_feed_wizard.commands.long.average_reward, async (ctx) => {
-      this.averageFeedRewardAmountHandler(ctx);
+      this.averageFeedRewardAmountStep(ctx);
     });
     stepHandler.command(wizardText.flux_feed_wizard.commands.short.average_reward, async (ctx) => {
-      this.averageFeedRewardAmountHandler(ctx);
+      this.averageFeedRewardAmountStep(ctx);
     });
     stepHandler.command(wizardText.flux_feed_wizard.commands.long.leave, async (ctx) => {
       await ctx.reply(wizardText.flux_feed_wizard.replies.leaving);
@@ -49,35 +49,39 @@ export class FluxFeedRewardWizard {
     return rewardWizard;
   }
 
-  private async feedRewardListeningHandler(ctx: Scenes.WizardContext): Promise<void> {
-    for (const name of this.currentFeedStatus.keys()) {
-      const feedStatus: FluxFeedRewardStatus | undefined = this.currentFeedStatus.get(name);
+  private async feedRewardListeningStep(ctx: Scenes.WizardContext): Promise<void> {
+    for (const feedName of this.currentFeedStatus.keys()) {
+      const feedStatus: FluxFeedRewardStatus | undefined = this.currentFeedStatus.get(feedName);
       if (feedStatus) {
         if (feedStatus.contract.listeners(ROUND_DETAILS_UPDATED_NAME).length != 0) {
           await ctx.reply(wizardText.flux_feed_wizard.replies.already_listening);
           return;
         }
-        feedStatus.contract.on(ROUND_DETAILS_UPDATED_NAME, async (paymentAmount) => {
-          await ctx.reply(
-            `${wizardText.flux_feed_wizard.replies.new_feed_reward} ${name}: ${this.getLinkValueWithTwoDecimals(
-              paymentAmount
-            )} LINK`
-          );
-          this.updateCurrentFeedReward(name, paymentAmount);
-        });
+        feedStatus.contract.on(ROUND_DETAILS_UPDATED_NAME, async (paymentAmount: BigNumber) =>
+          this.roundDetailsUpdatedListener(ctx, feedName, paymentAmount)
+        );
       }
     }
     await ctx.reply(wizardText.flux_feed_wizard.replies.started_listening);
   }
 
-  private async stopFeedRewardListeningHandler(ctx: Scenes.WizardContext): Promise<void> {
+  private async roundDetailsUpdatedListener(ctx: Context, feedName: string, paymentAmount: BigNumber): Promise<void> {
+    await ctx.reply(
+      `${wizardText.flux_feed_wizard.replies.new_feed_reward} ${feedName}: ${this.getLinkValueWithTwoDecimals(
+        paymentAmount
+      )} LINK`
+    );
+    this.updateCurrentFeedReward(feedName, paymentAmount);
+  }
+
+  private async stopFeedRewardListeningStep(ctx: Scenes.WizardContext): Promise<void> {
     for (const feedStatus of this.currentFeedStatus.values()) {
       feedStatus.contract.removeAllListeners(ROUND_DETAILS_UPDATED_NAME);
     }
     await ctx.reply(wizardText.flux_feed_wizard.replies.stopped_listening);
   }
 
-  private async averageFeedRewardAmountHandler(ctx: Scenes.WizardContext): Promise<void> {
+  private async averageFeedRewardAmountStep(ctx: Scenes.WizardContext): Promise<void> {
     await ctx.reply(
       `${wizardText.flux_feed_wizard.replies.average_feed_reward} ${this.getLinkValueWithTwoDecimals(
         this.getAverageFeedRewardAmount()
@@ -93,11 +97,10 @@ export class FluxFeedRewardWizard {
     return totalRewards.div(BigNumber.from(this.currentFeedStatus.size));
   }
 
-  private updateCurrentFeedReward(name: string, newReward: BigNumber): void {
-    const fluxFeedStatus: FluxFeedRewardStatus | undefined = this.currentFeedStatus.get(name);
+  private updateCurrentFeedReward(feedName: string, newReward: BigNumber): void {
+    const fluxFeedStatus: FluxFeedRewardStatus | undefined = this.currentFeedStatus.get(feedName);
     if (fluxFeedStatus && !fluxFeedStatus.currentReward.eq(newReward)) {
       fluxFeedStatus.currentReward = newReward;
-      this.currentFeedStatus.set(name, fluxFeedStatus);
     }
   }
 
