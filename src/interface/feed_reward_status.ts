@@ -1,21 +1,21 @@
 import { BigNumber, Contract } from 'ethers';
 
-export interface FluxFeedRewardStatus extends FeedRewardStatus {
+export interface FluxFeedRewardStatus extends FeedContract {
   currentReward: BigNumber;
 }
 
-export interface OcrFeedRewardStatus extends FeedRewardStatus {
+export interface OcrFeedRewardStatus extends FeedContract {
   billingSet: BillingSet;
 }
 
 export interface BillingSet {
-  maximumGasPrice: number;
-  reasonableGasPrice: number;
-  microLinkPerEth: number;
-  linkGweiPerObservation: number;
-  linkGweiPerTransmission: number;
+  maximumGasPriceInWei: BigNumber;
+  reasonableGasPriceInWei: BigNumber;
+  linkPerEth: BigNumber;
+  linkWeiPerObservation: BigNumber;
+  linkWeiPerTransmission: BigNumber;
 }
 
-export interface FeedRewardStatus {
+export interface FeedContract {
   contract: Contract;
 }
