@@ -1,9 +1,11 @@
+import '../../prototype/string.extensions';
 import * as FluxAggregator from '../../../artifacts/FluxAggregator.json';
 import * as wizardText from '../../../resources/wizard.json';
 import { Scenes, Composer, Context } from 'telegraf';
-import { providers, Contract, BigNumber, utils } from 'ethers';
+import { providers, Contract, BigNumber } from 'ethers';
 import { AddressInfo } from '../../interface/address_info';
 import { FluxFeedRewardStatus } from '../../interface/feed_reward_status';
+import { Helper } from '../../helper/help';
 
 const ROUND_DETAILS_UPDATED_NAME: string = 'RoundDetailsUpdated';
 
@@ -20,26 +22,26 @@ export class FluxFeedRewardWizard {
 
   getWizard(): Scenes.WizardScene<Scenes.WizardContext> {
     const stepHandler = new Composer<Scenes.WizardContext>();
-    stepHandler.command(wizardText.flux_feed_wizard.commands.long.start_listening, async (ctx) => {
+    stepHandler.command(wizardText.commands.long.start_listening, async (ctx) => {
       this.feedRewardListeningStep(ctx);
     });
-    stepHandler.command(wizardText.flux_feed_wizard.commands.short.start_listening, async (ctx) => {
+    stepHandler.command(wizardText.commands.short.start_listening, async (ctx) => {
       this.feedRewardListeningStep(ctx);
     });
-    stepHandler.command(wizardText.flux_feed_wizard.commands.long.stop_listening, async (ctx) => {
+    stepHandler.command(wizardText.commands.long.stop_listening, async (ctx) => {
       this.stopFeedRewardListeningStep(ctx);
     });
-    stepHandler.command(wizardText.flux_feed_wizard.commands.short.stop_listening, async (ctx) => {
+    stepHandler.command(wizardText.commands.short.stop_listening, async (ctx) => {
       this.stopFeedRewardListeningStep(ctx);
     });
-    stepHandler.command(wizardText.flux_feed_wizard.commands.long.average_reward, async (ctx) => {
+    stepHandler.command(wizardText.commands.long.average_reward, async (ctx) => {
       this.averageFeedRewardAmountStep(ctx);
     });
-    stepHandler.command(wizardText.flux_feed_wizard.commands.short.average_reward, async (ctx) => {
+    stepHandler.command(wizardText.commands.short.average_reward, async (ctx) => {
       this.averageFeedRewardAmountStep(ctx);
     });
-    stepHandler.command(wizardText.flux_feed_wizard.commands.long.leave, async (ctx) => {
-      await ctx.reply(wizardText.flux_feed_wizard.replies.leaving);
+    stepHandler.command(wizardText.commands.long.leave, async (ctx) => {
+      await ctx.reply(wizardText.general_replies.leaving);
       return ctx.scene.leave();
     });
     stepHandler.help(async (ctx) => {
@@ -67,9 +69,10 @@ export class FluxFeedRewardWizard {
 
   private async roundDetailsUpdatedListener(ctx: Context, feedName: string, paymentAmount: BigNumber): Promise<void> {
     await ctx.reply(
-      `${wizardText.flux_feed_wizard.replies.new_feed_reward} ${feedName}: ${this.getLinkValueWithTwoDecimals(
-        paymentAmount
-      )} LINK`
+      wizardText.flux_feed_wizard.replies.new_feed_reward.format(
+        feedName,
+        Helper.getLinkValueWithTwoDecimals(paymentAmount)
+      )
     );
     this.updateCurrentFeedReward(feedName, paymentAmount);
   }
@@ -83,9 +86,9 @@ export class FluxFeedRewardWizard {
 
   private async averageFeedRewardAmountStep(ctx: Scenes.WizardContext): Promise<void> {
     await ctx.reply(
-      `${wizardText.flux_feed_wizard.replies.average_feed_reward} ${this.getLinkValueWithTwoDecimals(
-        this.getAverageFeedRewardAmount()
-      )} LINK`
+      wizardText.flux_feed_wizard.replies.average_feed_reward.format(
+        Helper.getLinkValueWithTwoDecimals(this.getAverageFeedRewardAmount())
+      )
     );
   }
 
@@ -116,10 +119,5 @@ export class FluxFeedRewardWizard {
       const currentPaymentAmount: BigNumber = await feedStatus.contract.paymentAmount();
       feedStatus.currentReward = currentPaymentAmount;
     }
-  }
-
-  private getLinkValueWithTwoDecimals(linkInWei: BigNumber): string {
-    const valueString: string = utils.formatEther(linkInWei);
-    return valueString.slice(0, valueString.indexOf('.') + 3);
   }
 }

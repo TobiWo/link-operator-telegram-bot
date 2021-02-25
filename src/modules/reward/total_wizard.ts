@@ -1,24 +1,26 @@
+import '../../prototype/string.extensions';
 import * as FluxAggregator from '../../../artifacts/FluxAggregator.json';
 import * as LinkToken from '../../../artifacts/LinkToken.json';
 import * as OcrAggregator from '../../../artifacts/OCR.json';
 import * as wizardText from '../../../resources/wizard.json';
 import { AddressInfo, ContractInfo } from '../../interface/address_info';
 import { Scenes, Composer } from 'telegraf';
-import { providers, Contract, BigNumber, utils } from 'ethers';
+import { providers, Contract, BigNumber } from 'ethers';
+import { Helper } from '../../helper/help';
 
 export class RewardBalanceWizard {
   constructor(private addressYaml: AddressInfo, private provider: providers.BaseProvider) {}
 
   getWizard(): Scenes.WizardScene<Scenes.WizardContext> {
     const stepHandler = new Composer<Scenes.WizardContext>();
-    stepHandler.command(wizardText.total_wizard.commands.long.current_total_balance, async (ctx) => {
+    stepHandler.command(wizardText.commands.long.current_total_balance, async (ctx) => {
       await this.handleRewardBalanceContext(ctx);
     });
-    stepHandler.command(wizardText.total_wizard.commands.short.current_total_balance, async (ctx) => {
+    stepHandler.command(wizardText.commands.short.current_total_balance, async (ctx) => {
       await this.handleRewardBalanceContext(ctx);
     });
-    stepHandler.command(wizardText.total_wizard.commands.long.leave, async (ctx) => {
-      await ctx.reply(wizardText.total_wizard.replies.leaving);
+    stepHandler.command(wizardText.commands.long.leave, async (ctx) => {
+      await ctx.reply(wizardText.general_replies.leaving);
       return ctx.scene.leave();
     });
     stepHandler.help(async (ctx) => {
@@ -43,24 +45,17 @@ export class RewardBalanceWizard {
     const currentOcrPayeeRewards = await this.getCurrentOcrPayeeRewards();
     const totalBalance: BigNumber = currentOcrContractRewards.add(currentFluxRewards).add(currentOcrPayeeRewards);
     await ctx.reply(
-      `${wizardText.total_wizard.replies.total_ocr_contrats} ${this.getLinkValueWithTwoDecimals(
-        currentOcrContractRewards
-      )} LINK`
+      wizardText.total_wizard.replies.total_ocr_contrats.format(
+        Helper.getLinkValueWithTwoDecimals(currentOcrContractRewards)
+      )
     );
     await ctx.reply(
-      `${wizardText.total_wizard.replies.total_ocr_payee} ${this.getLinkValueWithTwoDecimals(
-        currentOcrPayeeRewards
-      )} LINK`
+      wizardText.total_wizard.replies.total_ocr_payee.format(Helper.getLinkValueWithTwoDecimals(currentOcrPayeeRewards))
     );
     await ctx.reply(
-      `${wizardText.total_wizard.replies.total_flux} ${this.getLinkValueWithTwoDecimals(currentFluxRewards)} LINK`
+      wizardText.total_wizard.replies.total_flux.format(Helper.getLinkValueWithTwoDecimals(currentFluxRewards))
     );
-    await ctx.reply(`${wizardText.total_wizard.replies.total} ${this.getLinkValueWithTwoDecimals(totalBalance)} LINK`);
-  }
-
-  private getLinkValueWithTwoDecimals(linkInWei: BigNumber): string {
-    const valueString: string = utils.formatEther(linkInWei);
-    return valueString.slice(0, valueString.indexOf('.') + 3);
+    await ctx.reply(wizardText.total_wizard.replies.total.format(Helper.getLinkValueWithTwoDecimals(totalBalance)));
   }
 
   private async getCurrentRewardsOnContracts(contracts: ContractInfo[], abi: any, isFlux: boolean): Promise<BigNumber> {
