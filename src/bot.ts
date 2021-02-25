@@ -3,6 +3,7 @@ import * as wizardText from '../resources/wizard.json';
 import { Telegraf, Scenes, session, Markup, Context } from 'telegraf';
 import { AddressInfo } from './interface/address_info';
 import { FluxFeedRewardWizard } from './modules/reward/listening_flux_wizard';
+import { OcrFeedRewardWizard } from './modules/reward/listening_ocr_wizard';
 import { RewardBalanceWizard } from './modules/reward/total_wizard';
 import YAML from 'yaml';
 import { cliOptions } from './cli';
@@ -14,6 +15,7 @@ export class ChainlinkBot {
   bot: Telegraf<Scenes.WizardContext>;
   private rewardBalanceWizard!: RewardBalanceWizard;
   private fluxFeedRewardWizard!: FluxFeedRewardWizard;
+  private ocrFeedRewardWizard!: OcrFeedRewardWizard;
 
   constructor() {
     this.readAddressYaml();
@@ -24,17 +26,20 @@ export class ChainlinkBot {
 
   async initWizardInstances(): Promise<void> {
     await this.fluxFeedRewardWizard.init();
+    await this.ocrFeedRewardWizard.init();
   }
 
   private createWizardInstances(): void {
     this.rewardBalanceWizard = new RewardBalanceWizard(this.addressYaml, cliOptions.provider);
     this.fluxFeedRewardWizard = new FluxFeedRewardWizard(this.addressYaml, cliOptions.provider);
+    this.ocrFeedRewardWizard = new OcrFeedRewardWizard(this.addressYaml, cliOptions.provider);
   }
 
   private setupBot() {
     const stage = new Scenes.Stage<Scenes.WizardContext>([
       this.rewardBalanceWizard.getWizard(),
       this.fluxFeedRewardWizard.getWizard(),
+      this.ocrFeedRewardWizard.getWizard(),
     ]);
     this.bot.use(session());
     this.bot.use(stage.middleware());
@@ -49,7 +54,10 @@ export class ChainlinkBot {
       if (this.isChatEligible(ctx)) {
         await ctx.replyWithMarkdownV2(
           botText.messages.choose_module,
-          Markup.keyboard([[botText.module_names.total_reward, botText.module_names.flux_details]])
+          Markup.keyboard([
+            [botText.module_names.total_reward],
+            [botText.module_names.flux_details, botText.module_names.ocr_details],
+          ])
             .oneTime()
             .resize()
         );
@@ -62,6 +70,10 @@ export class ChainlinkBot {
     this.bot.hears(botText.module_names.flux_details, (ctx) => {
       ctx.scene.enter(wizardText.flux_feed_wizard.name);
       ctx.replyWithMarkdownV2(botText.messages.enter_flux_details);
+    });
+    this.bot.hears(botText.module_names.ocr_details, (ctx) => {
+      ctx.scene.enter(wizardText.ocr_feed_wizard.name);
+      ctx.replyWithMarkdownV2(botText.messages.enter_ocr_details);
     });
   }
 
