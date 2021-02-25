@@ -1,13 +1,15 @@
 {
   "module_names": {
     "total_reward": "💰 Current total rewards",
-    "flux_details": "🦻 Flux feed reward details"
+    "flux_details": "🦻 Flux feed reward details",
+    "ocr_details": "🦻 OCR feed reward details"
   },
   "messages": {
     "help": "This bot is segmented into several modules with certain funtionalities\\. Type `link` to start the bot\\.",
     "choose_module": "*Choose your module*",
     "enter_total_reward": "*Entering reward fetcher module\\!*\nType `/help` for all available commands",
-    "enter_flux_details": "*Entering flux feed wizard\\!*\nType `/help` for all available commands",
+    "enter_flux_details": "*Entering flux feed details module\\!*\nType `/help` for all available commands",
+    "enter_ocr_details": "*Entering ocr feed details module\\!*\nType `/help` for all available commands",
     "is_chat_eligible": "*Sorry, this chat is not eligible to work with me\\!*"
   },
   "commands": {

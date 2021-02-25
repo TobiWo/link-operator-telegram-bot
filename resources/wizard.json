@@ -1,48 +1,55 @@
 {
+  "commands": {
+    "long": {
+      "current_total_balance": "currentTotalBalance",
+      "average_reward": "averageReward",
+      "start_listening": "listenOnRewardChanges",
+      "stop_listening": "stopListening",
+      "leave": "leave"
+    },
+    "short": {
+      "current_total_balance": "ctb",
+      "average_reward": "avg",
+      "start_listening": "lrc",
+      "stop_listening": "sl"
+    }
+  },
+  "general_replies": {
+    "leaving": "Leaving module!"
+  },
   "total_wizard": {
     "name": "reward_wizard",
-    "commands": {
-      "long": {
-        "current_total_balance": "currentTotalBalance",
-        "leave": "leave"
-      },
-      "short": {
-        "current_total_balance": "ctb"
-      }
-    },
     "replies": {
       "help": "Available commands:\n/currentTotalBalance (/ctb) - total balance of rewards on all active feeds\n/leave - leaves the current module",
-      "leaving": "Leaving module!",
       "fetching": "Fetching rewards...",
-      "total_ocr_contrats": "Total balance on OCR-contracts:",
-      "total_ocr_payee": "Total balance on OCR-payee-address",
-      "total_flux": "Total balance on Flux-contracts:",
-      "total": "Current total balance is:"
+      "total_ocr_contrats": "Total balance on OCR-contracts: {0} LINK",
+      "total_ocr_payee": "Total balance on OCR-payee-address: {0} LINK",
+      "total_flux": "Total balance on Flux-contracts: {0} LINK",
+      "total": "Current total balance is: {0} LINK"
     }
   },
   "flux_feed_wizard": {
     "name": "flux-feed-wizard",
-    "commands": {
-      "long": {
-        "start_listening": "listenOnRewardChanges",
-        "stop_listening": "stopListening",
-        "average_reward": "averageFluxReward",
-        "leave": "leave"
-      },
-      "short": {
-        "start_listening": "lrc",
-        "stop_listening": "sl",
-        "average_reward": "avr"
-      }
-    },
     "replies": {
       "help": "Available commands:\n/listenOnRewardChanges (/lrc) - listen to reward changes on every flux feed\n/stopListening (/sl) - stops listening on reward changes\n/averageFluxReward (/avr) - prints the current average feed-reward\n/leave - leaves the current module",
-      "leaving": "Leaving module!",
       "already_listening": "You already listening on flux contracts for reward changes!",
-      "new_feed_reward": "New feed-reward on flux-feed",
+      "new_feed_reward": "New feed-reward on flux-feed {0}: {1} LINK",
       "started_listening": "Started listening on all flux-contracts!",
       "stopped_listening": "Stopped listening on all flux-contracts!",
-      "average_feed_reward": "Current average feed-reward:"
+      "average_feed_reward": "Current average feed-reward: {0} LINK"
+    }
+  },
+  "ocr_feed_wizard": {
+    "name": "ocr-feed-wizard",
+    "replies": {
+      "help": "Available commands:\n/listenOnRewardChanges (/lrc) - listen to reward changes on every ocr feed\n/stopListening (/sl) - stops listening on reward changes\n/averageOcrReward (/avr) - prints the current average observation and transmitter feed-reward\n/leave - leaves the current module",
+      "already_listening": "You already listening on ocr contracts for reward changes!",
+      "new_observation_feed_reward": "New observation reward on ocr-feed {0}: {1} LINK",
+      "new_transmitter_feed_reward": "New transmitter reward on ocr-feed {0}: {1} LINK (for current gas price of {2} GWEI)",
+      "started_listening": "Started listening on all ocr-contracts!",
+      "stopped_listening": "Stopped listening on all ocr-contracts!",
+      "average_observation_feed_reward": "Current average observation feed-reward: {0} LINK",
+      "average_transmitter_feed_reward": "Current average transmitter feed-reward: {0} LINK"
     }
   }
 }
