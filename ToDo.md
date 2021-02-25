@@ -8,3 +8,9 @@
 5. Add logger & proper error handling
 6. Add unit-tests
 7. Add dynamic path for address_info??
+8. make getBillingSet abstract
+
+## Question
+
+Is just one provider for all instances enough or is it better to instantiate for every wizard a separate provider?
+Best practice for initializing providers
