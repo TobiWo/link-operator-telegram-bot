@@ -24,7 +24,7 @@ export class RewardBalanceWizard {
       return ctx.scene.leave();
     });
     stepHandler.help(async (ctx) => {
-      await ctx.reply(wizardText.total_wizard.replies.help);
+      await ctx.replyWithMarkdownV2(wizardText.total_wizard.replies.help);
     });
     const rewardWizard = new Scenes.WizardScene(wizardText.total_wizard.name, stepHandler);
     return rewardWizard;
