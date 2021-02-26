@@ -1,3 +1,4 @@
+import './prototype/string.extensions';
 import * as botText from '../resources/bot.json';
 import * as wizardText from '../resources/wizard.json';
 import { Telegraf, Scenes, session, Markup, Context } from 'telegraf';
@@ -65,15 +66,18 @@ export class ChainlinkBot {
     });
     this.bot.hears(botText.module_names.total_reward, (ctx) => {
       ctx.scene.enter(wizardText.total_wizard.name);
-      ctx.replyWithMarkdownV2(botText.messages.enter_total_reward);
+      ctx.replyWithMarkdownV2(botText.messages.enter_total_reward.format(wizardText.total_wizard.replies.help));
+      ctx.reply(botText.messages.type_help);
     });
     this.bot.hears(botText.module_names.flux_details, (ctx) => {
       ctx.scene.enter(wizardText.flux_feed_wizard.name);
-      ctx.replyWithMarkdownV2(botText.messages.enter_flux_details);
+      ctx.replyWithMarkdownV2(botText.messages.enter_flux_details.format(wizardText.flux_feed_wizard.replies.help));
+      ctx.reply(botText.messages.type_help);
     });
     this.bot.hears(botText.module_names.ocr_details, (ctx) => {
       ctx.scene.enter(wizardText.ocr_feed_wizard.name);
-      ctx.replyWithMarkdownV2(botText.messages.enter_ocr_details);
+      ctx.replyWithMarkdownV2(botText.messages.enter_ocr_details.format(wizardText.ocr_feed_wizard.replies.help));
+      ctx.reply(botText.messages.type_help);
     });
   }
 
