@@ -1,6 +1,6 @@
 import { BigNumber, Contract } from 'ethers';
 
-export interface FeedRewardStatus<T> {
+export interface FeedRewardStatus<T extends BigNumber | BillingSet> {
   contract: Contract;
   rewardData: T;
 }
