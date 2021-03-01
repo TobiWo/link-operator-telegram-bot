@@ -31,7 +31,7 @@
   "flux_feed_wizard": {
     "name": "flux-feed-wizard",
     "replies": {
-      "help": "Available commands:\n/listenOnRewardChanges \\(/lrc\\) \\- listen to reward changes on every flux feed\n/stopListening \\(/sl\\) \\- stops listening on reward changes\n/averageFluxReward \\(/avg\\) \\- prints the current average feed reward\n/leave \\- leaves the current module",
+      "help": "Available commands:\n/listenOnRewardChanges \\(/lrc\\) \\- listen to reward changes on every flux feed\n/stopListening \\(/sl\\) \\- stops listening on reward changes\n/averageReward \\(/avg\\) \\- prints the current average feed reward\n/leave \\- leaves the current module",
       "already_listening": "You already listening on flux contracts for reward changes!",
       "new_feed_reward": "New feed-reward on flux-feed {0}: {1} LINK",
       "started_listening": "Started listening on all flux-contracts!",
@@ -42,7 +42,7 @@
   "ocr_feed_wizard": {
     "name": "ocr-feed-wizard",
     "replies": {
-      "help": "Available commands:\n/listenOnRewardChanges \\(/lrc\\) \\- listen to reward changes on every ocr feed\n/stopListening \\(/sl\\) \\- stops listening on reward changes\n/averageOcrReward \\(/avg\\) \\- prints the current average observation and transmitter feed reward\n/leave \\- leaves the current module",
+      "help": "Available commands:\n/listenOnRewardChanges \\(/lrc\\) \\- listen to reward changes on every ocr feed\n/stopListening \\(/sl\\) \\- stops listening on reward changes\n/averageReward \\(/avg\\) \\- prints the current average observation and transmitter feed reward\n/leave \\- leaves the current module",
       "already_listening": "You already listening on ocr contracts for reward changes!",
       "new_observation_feed_reward": "New observation reward on ocr-feed {0}: {1} LINK",
       "new_transmitter_feed_reward": "New transmitter reward on ocr-feed {0}: {1} LINK (for current gas price of {2} GWEI)",
@@ -50,6 +50,19 @@
       "stopped_listening": "Stopped listening on all ocr-contracts!",
       "average_observation_feed_reward": "Current average observation feed-reward: {0} LINK",
       "average_transmitter_feed_reward": "Current average transmitter feed-reward: {0} LINK"
+    }
+  },
+  "listening_service": {
+    "action": {
+      "start": "start",
+      "stop": "stop"
+    },
+    "button": {
+      "start": "▶️ Start",
+      "stop": "⏹️ Stop"
+    },
+    "replies": {
+      "activation_note": "*Note: While activating the listener I will potentially spam this chat\\!*"
     }
   }
 }
