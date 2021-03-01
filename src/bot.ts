@@ -1,11 +1,12 @@
 import './prototype/string.extensions';
 import * as botText from '../resources/bot.json';
 import * as wizardText from '../resources/wizard.json';
-import { Telegraf, Scenes, session, Markup, Context } from 'telegraf';
-import { AddressInfo } from './interface/address_info';
-import { FluxFeedRewardWizard } from './modules/reward/listening_flux_wizard';
-import { OcrFeedRewardWizard } from './modules/reward/listening_ocr_wizard';
-import { RewardBalanceWizard } from './modules/reward/total_wizard';
+import { Telegraf, Scenes, session, Context } from 'telegraf';
+import { AddressInfo } from './model/address_info';
+import { FluxFeedRewardWizard } from './modules/reward/wizard/flux_feed';
+import { OcrFeedRewardWizard } from './modules/reward/wizard/ocr_feed';
+import { Replier } from './general_replier';
+import { RewardBalanceWizard } from './modules/reward/wizard/total';
 import YAML from 'yaml';
 import { cliOptions } from './cli';
 import fs from 'fs';
@@ -53,15 +54,7 @@ export class ChainlinkBot {
 
     this.bot.hears(botText.commands.link, async (ctx) => {
       if (this.isChatEligible(ctx)) {
-        await ctx.replyWithMarkdownV2(
-          botText.messages.choose_module,
-          Markup.keyboard([
-            [botText.module_names.total_reward],
-            [botText.module_names.flux_details, botText.module_names.ocr_details],
-          ])
-            .oneTime()
-            .resize()
-        );
+        await Replier.replyBotMainMenu(ctx);
       }
     });
     this.bot.hears(botText.module_names.total_reward, (ctx) => {
