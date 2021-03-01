@@ -1,32 +1,59 @@
-import '../../prototype/string.extensions';
-import * as FluxAggregator from '../../../artifacts/FluxAggregator.json';
-import * as wizardText from '../../../resources/wizard.json';
-import { Scenes, Composer, Context } from 'telegraf';
-import { providers, Contract, BigNumber } from 'ethers';
-import { AddressInfo } from '../../interface/address_info';
-import { FeedRewardStatus } from '../../interface/feed_reward_status';
-import { Helper } from '../../helper/help';
+import '../../../prototype/string.extensions';
+import * as wizardText from '../../../../resources/wizard.json';
+import { BigNumber, providers } from 'ethers';
+import { Composer, Context, Scenes } from 'telegraf';
+import { AddressInfo } from '../../../model/address_info';
+import { FeedRewardStatus } from '../../../model/feed_reward_status';
+import { FeedWizard } from './feed';
+import { FluxFeedRewardService } from '../service/flux_feed';
+import { Helper } from '../../../helper/help';
+import { Replier } from '../../../general_replier';
 
 const ROUND_DETAILS_UPDATED_NAME: string = 'RoundDetailsUpdated';
 
-export class FluxFeedRewardWizard {
-  private currentFeedStatus: Map<string, FeedRewardStatus<BigNumber>> = new Map();
+export class FluxFeedRewardWizard extends FeedWizard<BigNumber> {
+  private feedService: FluxFeedRewardService;
 
   constructor(private addressYaml: AddressInfo, private provider: providers.BaseProvider) {
-    this.createFluxContracts();
+    super();
+    this.feedService = new FluxFeedRewardService();
+    this.feedService._createFluxContracts(this.currentFeedStatus, this.addressYaml, this.provider);
   }
 
   async init(): Promise<void> {
-    await this.setCurrentRewardsOnFeeds();
+    await this.feedService._setCurrentRewardsOnFeeds(this.currentFeedStatus);
   }
 
   getWizard(): Scenes.WizardScene<Scenes.WizardContext> {
+    const wizardMainMenu: Composer<Scenes.WizardContext<Scenes.WizardSessionData>> = this.getWizardMainMenu();
+    const fluxFeedWizard = new Scenes.WizardScene(
+      wizardText.flux_feed_wizard.name,
+      wizardMainMenu,
+      this.getStartListeningConfirmationStep()
+    );
+    return fluxFeedWizard;
+  }
+
+  getStartListeningConfirmationStep(): Composer<Scenes.WizardContext<Scenes.WizardSessionData>> {
+    const stepHandler = new Composer<Scenes.WizardContext>();
+    stepHandler.action(wizardText.listening_service.action.start, async (ctx) => {
+      this.feedRewardListeningStep(ctx);
+      return ctx.wizard.selectStep(0);
+    });
+    stepHandler.action(wizardText.listening_service.action.stop, async (ctx) => {
+      ctx.reply(wizardText.flux_feed_wizard.replies.help);
+      return ctx.wizard.selectStep(0);
+    });
+    return stepHandler;
+  }
+
+  private getWizardMainMenu(): Composer<Scenes.WizardContext<Scenes.WizardSessionData>> {
     const stepHandler = new Composer<Scenes.WizardContext>();
     stepHandler.command(wizardText.commands.long.start_listening, async (ctx) => {
-      this.feedRewardListeningStep(ctx);
+      this.startListeningConfirmationRequest(1, ctx);
     });
     stepHandler.command(wizardText.commands.short.start_listening, async (ctx) => {
-      this.feedRewardListeningStep(ctx);
+      this.startListeningConfirmationRequest(1, ctx);
     });
     stepHandler.command(wizardText.commands.long.stop_listening, async (ctx) => {
       this.stopFeedRewardListeningStep(ctx);
@@ -42,13 +69,13 @@ export class FluxFeedRewardWizard {
     });
     stepHandler.command(wizardText.commands.long.leave, async (ctx) => {
       await ctx.reply(wizardText.general_replies.leaving);
+      await Replier.replyBotMainMenu(ctx);
       return ctx.scene.leave();
     });
     stepHandler.help(async (ctx) => {
       await ctx.replyWithMarkdownV2(wizardText.flux_feed_wizard.replies.help);
     });
-    const rewardWizard = new Scenes.WizardScene(wizardText.flux_feed_wizard.name, stepHandler);
-    return rewardWizard;
+    return stepHandler;
   }
 
   private async feedRewardListeningStep(ctx: Scenes.WizardContext): Promise<void> {
@@ -68,13 +95,17 @@ export class FluxFeedRewardWizard {
   }
 
   private async roundDetailsUpdatedListener(ctx: Context, feedName: string, paymentAmount: BigNumber): Promise<void> {
-    await ctx.reply(
-      wizardText.flux_feed_wizard.replies.new_feed_reward.format(
-        feedName,
-        Helper.getLinkValueWithTwoDecimals(paymentAmount)
-      )
-    );
-    this.updateCurrentFeedReward(feedName, paymentAmount);
+    try {
+      await ctx.reply(
+        wizardText.flux_feed_wizard.replies.new_feed_reward.format(
+          feedName,
+          Helper.getLinkValueWithTwoDecimals(paymentAmount)
+        )
+      );
+      this.feedService._updateCurrentFeedReward(this.currentFeedStatus, feedName, paymentAmount);
+    } catch (err) {
+      console.log(err.message);
+    }
   }
 
   private async stopFeedRewardListeningStep(ctx: Scenes.WizardContext): Promise<void> {
@@ -87,37 +118,8 @@ export class FluxFeedRewardWizard {
   private async averageFeedRewardAmountStep(ctx: Scenes.WizardContext): Promise<void> {
     await ctx.reply(
       wizardText.flux_feed_wizard.replies.average_feed_reward.format(
-        Helper.getLinkValueWithTwoDecimals(this.getAverageFeedRewardAmount())
+        Helper.getLinkValueWithTwoDecimals(this.feedService._getAverageFeedRewardAmount(this.currentFeedStatus))
       )
     );
-  }
-
-  private getAverageFeedRewardAmount(): BigNumber {
-    let totalRewards: BigNumber = BigNumber.from(0);
-    for (const feedStatus of this.currentFeedStatus.values()) {
-      totalRewards = totalRewards.add(feedStatus.rewardData);
-    }
-    return totalRewards.div(BigNumber.from(this.currentFeedStatus.size));
-  }
-
-  private updateCurrentFeedReward(feedName: string, newReward: BigNumber): void {
-    const fluxFeedStatus: FeedRewardStatus<BigNumber> | undefined = this.currentFeedStatus.get(feedName);
-    if (fluxFeedStatus && !fluxFeedStatus.rewardData.eq(newReward)) {
-      fluxFeedStatus.rewardData = newReward;
-    }
-  }
-
-  private createFluxContracts(): void {
-    for (const contractInfo of this.addressYaml.flux.contracts) {
-      const contract: Contract = new Contract(contractInfo.address, FluxAggregator.abi, this.provider);
-      this.currentFeedStatus.set(contractInfo.name, { contract, rewardData: BigNumber.from(0) });
-    }
-  }
-
-  private async setCurrentRewardsOnFeeds(): Promise<void> {
-    for (const feedStatus of this.currentFeedStatus.values()) {
-      const currentPaymentAmount: BigNumber = await feedStatus.contract.paymentAmount();
-      feedStatus.rewardData = currentPaymentAmount;
-    }
   }
 }

@@ -1,33 +1,40 @@
-import '../../prototype/string.extensions';
-import * as FluxAggregator from '../../../artifacts/FluxAggregator.json';
-import * as LinkToken from '../../../artifacts/LinkToken.json';
-import * as OcrAggregator from '../../../artifacts/OCR.json';
-import * as wizardText from '../../../resources/wizard.json';
-import { AddressInfo, ContractInfo } from '../../interface/address_info';
+import '../../../prototype/string.extensions';
+import * as FluxAggregator from '../../../../artifacts/FluxAggregator.json';
+import * as LinkToken from '../../../../artifacts/LinkToken.json';
+import * as OcrAggregator from '../../../../artifacts/OCR.json';
+import * as wizardText from '../../../../resources/wizard.json';
+import { AddressInfo, ContractInfo } from '../../../model/address_info';
 import { Scenes, Composer } from 'telegraf';
 import { providers, Contract, BigNumber } from 'ethers';
-import { Helper } from '../../helper/help';
+import { Helper } from '../../../helper/help';
+import { Replier } from '../../../general_replier';
 
 export class RewardBalanceWizard {
   constructor(private addressYaml: AddressInfo, private provider: providers.BaseProvider) {}
 
   getWizard(): Scenes.WizardScene<Scenes.WizardContext> {
-    const stepHandler = new Composer<Scenes.WizardContext>();
-    stepHandler.command(wizardText.commands.long.current_total_balance, async (ctx) => {
+    const wizardMainMenu: Composer<Scenes.WizardContext<Scenes.WizardSessionData>> = this.getWizardMainMenu();
+    const rewardWizard = new Scenes.WizardScene(wizardText.total_wizard.name, wizardMainMenu);
+    return rewardWizard;
+  }
+
+  private getWizardMainMenu(): Composer<Scenes.WizardContext<Scenes.WizardSessionData>> {
+    const mainMenu = new Composer<Scenes.WizardContext>();
+    mainMenu.command(wizardText.commands.long.current_total_balance, async (ctx) => {
       await this.handleRewardBalanceContext(ctx);
     });
-    stepHandler.command(wizardText.commands.short.current_total_balance, async (ctx) => {
+    mainMenu.command(wizardText.commands.short.current_total_balance, async (ctx) => {
       await this.handleRewardBalanceContext(ctx);
     });
-    stepHandler.command(wizardText.commands.long.leave, async (ctx) => {
+    mainMenu.command(wizardText.commands.long.leave, async (ctx) => {
       await ctx.reply(wizardText.general_replies.leaving);
+      await Replier.replyBotMainMenu(ctx);
       return ctx.scene.leave();
     });
-    stepHandler.help(async (ctx) => {
+    mainMenu.help(async (ctx) => {
       await ctx.replyWithMarkdownV2(wizardText.total_wizard.replies.help);
     });
-    const rewardWizard = new Scenes.WizardScene(wizardText.total_wizard.name, stepHandler);
-    return rewardWizard;
+    return mainMenu;
   }
 
   private async handleRewardBalanceContext(ctx: Scenes.WizardContext): Promise<void> {
