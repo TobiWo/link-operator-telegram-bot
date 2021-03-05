@@ -1,7 +1,9 @@
 import * as OcrAggregator from '../../../../artifacts/OffchainAggregatorBilling.json';
+import * as wizardText from '../../../../resources/wizard.json';
 import { BigNumber, Contract, providers } from 'ethers';
 import { BillingSet, FeedRewardStatus } from '../../../model/feed_reward_status';
 import { AddressInfo } from '../../../model/address_info';
+import { Helper } from '../../../helper/help';
 import { TrxInfo } from '../../../model/trx_info';
 import _ from 'lodash';
 
@@ -13,6 +15,30 @@ export class OcrFeedRewardService {
     const transactionResponse: providers.TransactionResponse = await provider.getTransaction(transactionHash);
     const transactionReceipt: providers.TransactionReceipt = await provider.getTransactionReceipt(transactionHash);
     return { transactionReceipt: transactionReceipt, transactionResponse: transactionResponse };
+  }
+
+  _getReplyForChangedTransmitterValues(
+    currentFeedStatus: Map<string, FeedRewardStatus<BillingSet>>,
+    feedName: string,
+    billingSet: BillingSet
+  ): string {
+    let message: string = '';
+    const ocrFeedStatus: FeedRewardStatus<BillingSet> | undefined = currentFeedStatus.get(feedName);
+    if (ocrFeedStatus) {
+      if (!ocrFeedStatus.rewardData.linkWeiPerTransmission.eq(billingSet.linkWeiPerTransmission)) {
+        message += wizardText.ocr_feed_wizard.replies.reward_per_transmission_change.format(
+          Helper.getLinkValueWithDefinedDecimals(ocrFeedStatus.rewardData.linkWeiPerTransmission, 4),
+          Helper.getLinkValueWithDefinedDecimals(billingSet.linkWeiPerTransmission, 4)
+        );
+      }
+      if (!ocrFeedStatus.rewardData.linkPerEth.eq(billingSet.linkPerEth)) {
+        message += wizardText.ocr_feed_wizard.replies.eth_per_link_change.format(
+          ocrFeedStatus.rewardData.linkPerEth.toString(),
+          billingSet.linkPerEth.toString()
+        );
+      }
+    }
+    return message;
   }
 
   _getNewTransmitterReward(billingSet: BillingSet, currentGasPrice: BigNumber, gasUsed: BigNumber): BigNumber {

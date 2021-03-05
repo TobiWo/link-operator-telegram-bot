@@ -89,8 +89,8 @@ export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
   private async billingSetListener(ctx: Context, feedName: string, args: any): Promise<void> {
     const retrievedBillingSet: BillingSet = this.feedService._createBillingSet(args.slice(0, args.length - 1));
     const transactionLog: providers.Log = args[args.length - 1];
-    this.replyOnTransmitterRewardChange(ctx, feedName, retrievedBillingSet, transactionLog.transactionHash);
-    this.replyOnObservationRewardChange(ctx, feedName, retrievedBillingSet);
+    await this.replyOnTransmitterRewardChange(ctx, feedName, retrievedBillingSet, transactionLog.transactionHash);
+    await this.replyOnObservationRewardChange(ctx, feedName, retrievedBillingSet);
     this.feedService._updateCurrentBillingSet(this.currentFeedStatus, feedName, retrievedBillingSet);
   }
 
@@ -99,7 +99,7 @@ export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
     feedName: string,
     billingSet: BillingSet,
     transactionHash: string
-  ) {
+  ): Promise<void> {
     if (
       this.feedService._isTransmitterRewardChanged(
         this.currentFeedStatus,
@@ -112,14 +112,16 @@ export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
       await ctx.reply(
         wizardText.ocr_feed_wizard.replies.new_transmitter_feed_reward.format(
           feedName,
-          Helper.getLinkValueWithTwoDecimals(
+          Helper.getLinkValueWithDefinedDecimals(
             this.feedService._getNewTransmitterReward(
               billingSet,
               trxInfo.transactionResponse.gasPrice,
               trxInfo.transactionReceipt.gasUsed
-            )
+            ),
+            2
           ),
-          trxInfo.transactionResponse.gasPrice.div(WEI_PER_GWEI).toString()
+          trxInfo.transactionResponse.gasPrice.div(WEI_PER_GWEI).toString(),
+          this.feedService._getReplyForChangedTransmitterValues(this.currentFeedStatus, feedName, billingSet)
         )
       );
     }
@@ -132,7 +134,7 @@ export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
       await ctx.reply(
         wizardText.ocr_feed_wizard.replies.new_observation_feed_reward.format(
           feedName,
-          Helper.getLinkValueWithTwoDecimals(billingSet.linkWeiPerObservation)
+          Helper.getLinkValueWithDefinedDecimals(billingSet.linkWeiPerObservation, 4)
         )
       );
     }
