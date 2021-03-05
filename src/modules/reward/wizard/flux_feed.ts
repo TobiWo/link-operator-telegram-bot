@@ -99,7 +99,7 @@ export class FluxFeedRewardWizard extends FeedWizard<BigNumber> {
       await ctx.reply(
         wizardText.flux_feed_wizard.replies.new_feed_reward.format(
           feedName,
-          Helper.getLinkValueWithTwoDecimals(paymentAmount)
+          Helper.getLinkValueWithDefinedDecimals(paymentAmount, 2)
         )
       );
       this.feedService._updateCurrentFeedReward(this.currentFeedStatus, feedName, paymentAmount);
@@ -118,7 +118,7 @@ export class FluxFeedRewardWizard extends FeedWizard<BigNumber> {
   private async averageFeedRewardAmountStep(ctx: Scenes.WizardContext): Promise<void> {
     await ctx.reply(
       wizardText.flux_feed_wizard.replies.average_feed_reward.format(
-        Helper.getLinkValueWithTwoDecimals(this.feedService._getAverageFeedRewardAmount(this.currentFeedStatus))
+        Helper.getLinkValueWithDefinedDecimals(this.feedService._getAverageFeedRewardAmount(this.currentFeedStatus), 2)
       )
     );
   }

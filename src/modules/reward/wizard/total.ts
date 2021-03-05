@@ -53,16 +53,16 @@ export class RewardBalanceWizard {
     const totalBalance: BigNumber = currentOcrContractRewards.add(currentFluxRewards).add(currentOcrPayeeRewards);
     await ctx.reply(
       wizardText.total_wizard.replies.total_ocr_contrats.format(
-        Helper.getLinkValueWithTwoDecimals(currentOcrContractRewards)
+        Helper.getLinkValueWithDefinedDecimals(currentOcrContractRewards, 2)
       )
     );
     await ctx.reply(
-      wizardText.total_wizard.replies.total_ocr_payee.format(Helper.getLinkValueWithTwoDecimals(currentOcrPayeeRewards))
+      wizardText.total_wizard.replies.total_ocr_payee.format(Helper.getLinkValueWithDefinedDecimals(currentOcrPayeeRewards, 2))
     );
     await ctx.reply(
-      wizardText.total_wizard.replies.total_flux.format(Helper.getLinkValueWithTwoDecimals(currentFluxRewards))
+      wizardText.total_wizard.replies.total_flux.format(Helper.getLinkValueWithDefinedDecimals(currentFluxRewards, 2))
     );
-    await ctx.reply(wizardText.total_wizard.replies.total.format(Helper.getLinkValueWithTwoDecimals(totalBalance)));
+    await ctx.reply(wizardText.total_wizard.replies.total.format(Helper.getLinkValueWithDefinedDecimals(totalBalance, 2)));
   }
 
   private async getCurrentRewardsOnContracts(contracts: ContractInfo[], abi: any, isFlux: boolean): Promise<BigNumber> {
