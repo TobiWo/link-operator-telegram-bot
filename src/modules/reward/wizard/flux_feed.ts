@@ -48,61 +48,61 @@ export class FluxFeedRewardWizard extends FeedWizard<BigNumber> {
   }
 
   private getWizardMainMenu(): Composer<Scenes.WizardContext<Scenes.WizardSessionData>> {
-    const stepHandler = new Composer<Scenes.WizardContext>();
-    stepHandler.command(wizardText.commands.long.start_listening, async (ctx) => {
+    const mainMenu = new Composer<Scenes.WizardContext>();
+    mainMenu.command(wizardText.commands.long.start_listening, async (ctx) => {
       this.startListeningConfirmationRequest(1, ctx);
     });
-    stepHandler.command(wizardText.commands.short.start_listening, async (ctx) => {
+    mainMenu.command(wizardText.commands.short.start_listening, async (ctx) => {
       this.startListeningConfirmationRequest(1, ctx);
     });
-    stepHandler.command(wizardText.commands.long.stop_listening, async (ctx) => {
+    mainMenu.command(wizardText.commands.long.stop_listening, async (ctx) => {
       this.stopFeedRewardListeningStep(ctx);
     });
-    stepHandler.command(wizardText.commands.short.stop_listening, async (ctx) => {
+    mainMenu.command(wizardText.commands.short.stop_listening, async (ctx) => {
       this.stopFeedRewardListeningStep(ctx);
     });
-    stepHandler.command(wizardText.commands.long.average_reward, async (ctx) => {
+    mainMenu.command(wizardText.commands.long.average_reward, async (ctx) => {
       this.averageFeedRewardAmountStep(ctx);
     });
-    stepHandler.command(wizardText.commands.short.average_reward, async (ctx) => {
+    mainMenu.command(wizardText.commands.short.average_reward, async (ctx) => {
       this.averageFeedRewardAmountStep(ctx);
     });
-    stepHandler.command(wizardText.commands.long.leave, async (ctx) => {
+    mainMenu.command(wizardText.commands.long.leave, async (ctx) => {
       await ctx.reply(wizardText.general_replies.leaving);
       await Replier.replyBotMainMenu(ctx);
       return ctx.scene.leave();
     });
-    stepHandler.help(async (ctx) => {
+    mainMenu.help(async (ctx) => {
       await ctx.replyWithMarkdownV2(wizardText.flux_feed_wizard.replies.help);
     });
-    return stepHandler;
+    return mainMenu;
   }
 
   private async feedRewardListeningStep(ctx: Scenes.WizardContext): Promise<void> {
     for (const feedName of this.currentFeedStatus.keys()) {
-      const feedStatus: FeedRewardStatus<BigNumber> | undefined = this.currentFeedStatus.get(feedName);
-      if (feedStatus) {
-        if (feedStatus.contract.listeners(ROUND_DETAILS_UPDATED_NAME).length != 0) {
-          await ctx.reply(wizardText.flux_feed_wizard.replies.already_listening);
-          return;
-        }
-        feedStatus.contract.on(ROUND_DETAILS_UPDATED_NAME, async (paymentAmount: BigNumber) =>
-          this.roundDetailsUpdatedListener(ctx, feedName, paymentAmount)
-        );
+      const feedStatus: FeedRewardStatus<BigNumber> = this.getFeedStatus(feedName);
+      if (feedStatus.contract.listeners(ROUND_DETAILS_UPDATED_NAME).length != 0) {
+        await ctx.reply(wizardText.flux_feed_wizard.replies.already_listening);
+        return;
       }
+      feedStatus.contract.on(ROUND_DETAILS_UPDATED_NAME, async (paymentAmount: BigNumber) =>
+        this.roundDetailsUpdatedListener(ctx, feedName, paymentAmount)
+      );
     }
     await ctx.reply(wizardText.flux_feed_wizard.replies.started_listening);
   }
 
   private async roundDetailsUpdatedListener(ctx: Context, feedName: string, paymentAmount: BigNumber): Promise<void> {
     try {
+      const feedStatus: FeedRewardStatus<BigNumber> = this.getFeedStatus(feedName);
       await ctx.reply(
         wizardText.flux_feed_wizard.replies.new_feed_reward.format(
           feedName,
+          Helper.getLinkValueWithDefinedDecimals(feedStatus.rewardData, 2),
           Helper.getLinkValueWithDefinedDecimals(paymentAmount, 2)
         )
       );
-      this.feedService._updateCurrentFeedReward(this.currentFeedStatus, feedName, paymentAmount);
+      this.feedService._updateCurrentFeedReward(this.getFeedStatus(feedName), paymentAmount);
     } catch (err) {
       console.log(err.message);
     }

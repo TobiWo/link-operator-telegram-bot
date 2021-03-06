@@ -74,14 +74,12 @@ export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
 
   private async feedRewardListeningStep(ctx: Scenes.WizardContext): Promise<void> {
     for (const feedName of this.currentFeedStatus.keys()) {
-      const feedStatus: FeedRewardStatus<BillingSet> | undefined = this.currentFeedStatus.get(feedName);
-      if (feedStatus) {
-        if (feedStatus.contract.listeners(BILLING_SET_NAME).length != 0) {
-          await ctx.reply(wizardText.ocr_feed_wizard.replies.already_listening);
-          return;
-        }
-        feedStatus.contract.on(BILLING_SET_NAME, async (...args: any) => this.billingSetListener(ctx, feedName, args));
+      const feedStatus: FeedRewardStatus<BillingSet> = this.getFeedStatus(feedName);
+      if (feedStatus.contract.listeners(BILLING_SET_NAME).length != 0) {
+        await ctx.reply(wizardText.ocr_feed_wizard.replies.already_listening);
+        return;
       }
+      feedStatus.contract.on(BILLING_SET_NAME, async (...args: any) => this.billingSetListener(ctx, feedName, args));
     }
     await ctx.reply(wizardText.ocr_feed_wizard.replies.started_listening);
   }
@@ -91,7 +89,7 @@ export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
     const transactionLog: providers.Log = args[args.length - 1];
     await this.replyOnTransmitterRewardChange(ctx, feedName, retrievedBillingSet, transactionLog.transactionHash);
     await this.replyOnObservationRewardChange(ctx, feedName, retrievedBillingSet);
-    this.feedService._updateCurrentBillingSet(this.currentFeedStatus, feedName, retrievedBillingSet);
+    this.feedService._updateCurrentBillingSet(this.getFeedStatus(feedName), retrievedBillingSet);
   }
 
   private async replyOnTransmitterRewardChange(
@@ -102,8 +100,7 @@ export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
   ): Promise<void> {
     if (
       this.feedService._isTransmitterRewardChanged(
-        this.currentFeedStatus,
-        feedName,
+        this.getFeedStatus(feedName),
         billingSet.linkWeiPerTransmission,
         billingSet.linkPerEth
       )
@@ -121,16 +118,14 @@ export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
             2
           ),
           trxInfo.transactionResponse.gasPrice.div(WEI_PER_GWEI).toString(),
-          this.feedService._getReplyForChangedTransmitterValues(this.currentFeedStatus, feedName, billingSet)
+          this.feedService._getReplyForChangedTransmitterValues(this.getFeedStatus(feedName), billingSet)
         )
       );
     }
   }
 
   private async replyOnObservationRewardChange(ctx: Context, feedName: string, billingSet: BillingSet) {
-    if (
-      this.feedService._isObservationRewardChanged(this.currentFeedStatus, feedName, billingSet.linkWeiPerObservation)
-    ) {
+    if (this.feedService._isObservationRewardChanged(this.getFeedStatus(feedName), billingSet.linkWeiPerObservation)) {
       await ctx.reply(
         wizardText.ocr_feed_wizard.replies.new_observation_feed_reward.format(
           feedName,

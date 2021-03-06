@@ -12,14 +12,9 @@ export class FluxFeedRewardService {
     return totalRewards.div(BigNumber.from(currentFeedStatus.size));
   }
 
-  _updateCurrentFeedReward(
-    currentFeedStatus: Map<string, FeedRewardStatus<BigNumber>>,
-    feedName: string,
-    newReward: BigNumber
-  ): void {
-    const fluxFeedStatus: FeedRewardStatus<BigNumber> | undefined = currentFeedStatus.get(feedName);
-    if (fluxFeedStatus && !fluxFeedStatus.rewardData.eq(newReward)) {
-      fluxFeedStatus.rewardData = newReward;
+  _updateCurrentFeedReward(feedStatus: FeedRewardStatus<BigNumber>, newReward: BigNumber): void {
+    if (!feedStatus.rewardData.eq(newReward)) {
+      feedStatus.rewardData = newReward;
     }
   }
 

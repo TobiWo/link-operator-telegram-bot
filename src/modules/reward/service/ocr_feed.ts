@@ -17,26 +17,19 @@ export class OcrFeedRewardService {
     return { transactionReceipt: transactionReceipt, transactionResponse: transactionResponse };
   }
 
-  _getReplyForChangedTransmitterValues(
-    currentFeedStatus: Map<string, FeedRewardStatus<BillingSet>>,
-    feedName: string,
-    billingSet: BillingSet
-  ): string {
+  _getReplyForChangedTransmitterValues(feedStatus: FeedRewardStatus<BillingSet>, billingSet: BillingSet): string {
     let message: string = '';
-    const ocrFeedStatus: FeedRewardStatus<BillingSet> | undefined = currentFeedStatus.get(feedName);
-    if (ocrFeedStatus) {
-      if (!ocrFeedStatus.rewardData.linkWeiPerTransmission.eq(billingSet.linkWeiPerTransmission)) {
-        message += wizardText.ocr_feed_wizard.replies.reward_per_transmission_change.format(
-          Helper.getLinkValueWithDefinedDecimals(ocrFeedStatus.rewardData.linkWeiPerTransmission, 4),
-          Helper.getLinkValueWithDefinedDecimals(billingSet.linkWeiPerTransmission, 4)
-        );
-      }
-      if (!ocrFeedStatus.rewardData.linkPerEth.eq(billingSet.linkPerEth)) {
-        message += wizardText.ocr_feed_wizard.replies.eth_per_link_change.format(
-          ocrFeedStatus.rewardData.linkPerEth.toString(),
-          billingSet.linkPerEth.toString()
-        );
-      }
+    if (!feedStatus.rewardData.linkWeiPerTransmission.eq(billingSet.linkWeiPerTransmission)) {
+      message += wizardText.ocr_feed_wizard.replies.reward_per_transmission_change.format(
+        Helper.getLinkValueWithDefinedDecimals(feedStatus.rewardData.linkWeiPerTransmission, 4),
+        Helper.getLinkValueWithDefinedDecimals(billingSet.linkWeiPerTransmission, 4)
+      );
+    }
+    if (!feedStatus.rewardData.linkPerEth.eq(billingSet.linkPerEth)) {
+      message += wizardText.ocr_feed_wizard.replies.eth_per_link_change.format(
+        feedStatus.rewardData.linkPerEth.toString(),
+        billingSet.linkPerEth.toString()
+      );
     }
     return message;
   }
@@ -52,41 +45,23 @@ export class OcrFeedRewardService {
   }
 
   _isTransmitterRewardChanged(
-    currentFeedStatus: Map<string, FeedRewardStatus<BillingSet>>,
-    name: string,
+    feedStatus: FeedRewardStatus<BillingSet>,
     linkWeiPerTransmission: BigNumber,
     linkPerEth: BigNumber
   ): boolean {
-    const ocrFeedStatus: FeedRewardStatus<BillingSet> | undefined = currentFeedStatus.get(name);
-    if (ocrFeedStatus) {
-      return (
-        !ocrFeedStatus.rewardData.linkWeiPerTransmission.eq(linkWeiPerTransmission) ||
-        !ocrFeedStatus.rewardData.linkPerEth.eq(linkPerEth)
-      );
-    }
-    return false;
+    return (
+      !feedStatus.rewardData.linkWeiPerTransmission.eq(linkWeiPerTransmission) ||
+      !feedStatus.rewardData.linkPerEth.eq(linkPerEth)
+    );
   }
 
-  _isObservationRewardChanged(
-    currentFeedStatus: Map<string, FeedRewardStatus<BillingSet>>,
-    name: string,
-    linkWeiPerObservation: BigNumber
-  ): boolean {
-    const ocrFeedStatus: FeedRewardStatus<BillingSet> | undefined = currentFeedStatus.get(name);
-    if (ocrFeedStatus) {
-      return !ocrFeedStatus.rewardData.linkWeiPerObservation.eq(linkWeiPerObservation);
-    }
-    return false;
+  _isObservationRewardChanged(feedStatus: FeedRewardStatus<BillingSet>, linkWeiPerObservation: BigNumber): boolean {
+    return !feedStatus.rewardData.linkWeiPerObservation.eq(linkWeiPerObservation);
   }
 
-  _updateCurrentBillingSet(
-    currentFeedStatus: Map<string, FeedRewardStatus<BillingSet>>,
-    name: string,
-    newBillingSet: BillingSet
-  ): void {
-    const ocrFeedStatus: FeedRewardStatus<BillingSet> | undefined = currentFeedStatus.get(name);
-    if (ocrFeedStatus && !_.isEqual(ocrFeedStatus.rewardData, newBillingSet)) {
-      ocrFeedStatus.rewardData = newBillingSet;
+  _updateCurrentBillingSet(feedStatus: FeedRewardStatus<BillingSet>, newBillingSet: BillingSet): void {
+    if (!_.isEqual(feedStatus.rewardData, newBillingSet)) {
+      feedStatus.rewardData = newBillingSet;
     }
   }
 
