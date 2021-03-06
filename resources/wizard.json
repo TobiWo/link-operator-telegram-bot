@@ -33,7 +33,7 @@
     "replies": {
       "help": "Available commands:\n/listenOnRewardChanges \\(/lrc\\) \\- listen to reward changes on every flux feed\n/stopListening \\(/sl\\) \\- stops listening on reward changes\n/averageReward \\(/avg\\) \\- prints the current average feed reward\n/leave \\- leaves the current module",
       "already_listening": "You already listening on flux contracts for reward changes!",
-      "new_feed_reward": "New feed-reward on flux-feed {0}: {1} LINK",
+      "new_feed_reward": "New feed-reward on flux-feed {0}: From {1} To {2} LINK",
       "started_listening": "Started listening on all flux-contracts!",
       "stopped_listening": "Stopped listening on all flux-contracts!",
       "average_feed_reward": "Current average feed-reward: {0} LINK"
@@ -46,8 +46,8 @@
       "already_listening": "You already listening on ocr contracts for reward changes!",
       "new_observation_feed_reward": "New observation reward on ocr-feed {0}: {1} LINK",
       "new_transmitter_feed_reward": "New transmitter reward on ocr-feed {0}: {1} LINK (for current gas price of {2} GWEI)\n\nChanged reward values:\n{3}",
-      "reward_per_transmission_change": "Reward per transmission: From {0} to {1} LINK\n",
-      "eth_per_link_change": "LINK per ETH: From {0} to {1} LINK",
+      "reward_per_transmission_change": "Reward per transmission: From {0} To {1} LINK\n",
+      "eth_per_link_change": "LINK per ETH: From {0} To {1} LINK",
       "started_listening": "Started listening on all ocr-contracts!",
       "stopped_listening": "Stopped listening on all ocr-contracts!",
       "average_observation_feed_reward": "Current average observation feed-reward: {0} LINK",
