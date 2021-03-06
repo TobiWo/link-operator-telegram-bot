@@ -50,8 +50,18 @@
       "eth_per_link_change": "LINK per ETH: From {0} To {1} LINK",
       "started_listening": "Started listening on all ocr-contracts!",
       "stopped_listening": "Stopped listening on all ocr-contracts!",
-      "average_observation_feed_reward": "Current average observation feed-reward: {0} LINK",
-      "average_transmitter_feed_reward": "Current average transmitter feed-reward: {0} LINK"
+      "average_observation_feed_reward": "Current average observation feed-reward: {0} LINK (independent of gas price)",
+      "average_transmitter_feed_reward": "Current average transmitter feed-reward for selected gas price: {0} LINK"
+    },
+    "requests": {
+      "gasPriceAction": {
+        "_50": "50",
+        "_100": "100",
+        "_200": "200",
+        "_400": "400",
+        "_700": "700",
+        "current": "Current"
+      }
     }
   },
   "listening_service": {
