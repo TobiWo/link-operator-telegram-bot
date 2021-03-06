@@ -1,14 +1,11 @@
 import * as OcrAggregator from '../../../../artifacts/OffchainAggregatorBilling.json';
 import * as wizardText from '../../../../resources/wizard.json';
-import { BigNumber, Contract, providers } from 'ethers';
+import { BigNumber, Contract, providers, utils } from 'ethers';
 import { BillingSet, FeedRewardStatus } from '../../../model/feed_reward_status';
 import { AddressInfo } from '../../../model/address_info';
 import { Helper } from '../../../helper/help';
 import { TrxInfo } from '../../../model/trx_info';
 import _ from 'lodash';
-
-export const MICROLINK_PER_LINK: BigNumber = BigNumber.from(10 ** 6);
-export const WEI_PER_GWEI: BigNumber = BigNumber.from(10 ** 9);
 
 export class OcrFeedRewardService {
   async _getTrxInfo(provider: providers.BaseProvider, transactionHash: string): Promise<TrxInfo> {
@@ -89,17 +86,18 @@ export class OcrFeedRewardService {
     for (const feedStatus of currentFeedStatus.values()) {
       const currentBillingSetList: number[] = await feedStatus.contract.getBilling();
       const currentBillingSet: BillingSet = this._createBillingSet(currentBillingSetList);
+      console.log(currentBillingSet.linkPerEth.toString());
       feedStatus.rewardData = currentBillingSet;
     }
   }
 
   _createBillingSet(contractReturnValue: number[]): BillingSet {
     return {
-      linkPerEth: BigNumber.from(contractReturnValue[2]).div(MICROLINK_PER_LINK),
-      linkWeiPerObservation: BigNumber.from(contractReturnValue[3]).mul(WEI_PER_GWEI),
-      linkWeiPerTransmission: BigNumber.from(contractReturnValue[4]).mul(WEI_PER_GWEI),
-      maximumGasPriceInWei: BigNumber.from(contractReturnValue[0]).mul(WEI_PER_GWEI),
-      reasonableGasPriceInWei: BigNumber.from(contractReturnValue[1]).mul(WEI_PER_GWEI),
+      linkPerEth: BigNumber.from(contractReturnValue[2]).div(utils.parseUnits('1', 'mwei')),
+      linkWeiPerObservation: utils.parseUnits(contractReturnValue[3].toString(), 'gwei'),
+      linkWeiPerTransmission: utils.parseUnits(contractReturnValue[4].toString(), 'gwei'),
+      maximumGasPriceInWei: utils.parseUnits(contractReturnValue[0].toString(), 'gwei'),
+      reasonableGasPriceInWei: utils.parseUnits(contractReturnValue[1].toString(), 'gwei'),
     };
   }
 }
