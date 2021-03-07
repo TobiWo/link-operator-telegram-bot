@@ -1,7 +1,7 @@
-import * as FluxAggregator from '../../../../artifacts/FluxAggregator.json';
+import * as FluxAggregator from '../../../../../artifacts/FluxAggregator.json';
 import { providers, Contract, BigNumber } from 'ethers';
-import { AddressInfo } from '../../../model/address_info';
-import { FeedRewardStatus } from '../../../model/feed_reward_status';
+import { AddressInfo } from '../../../../model/address_info';
+import { FeedRewardStatus } from '../../../../model/feed_reward_status';
 
 export class FluxFeedRewardService {
   _getAverageFeedRewardAmount(currentFeedStatus: Map<string, FeedRewardStatus<BigNumber>>): BigNumber {
