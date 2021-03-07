@@ -3,10 +3,10 @@ import * as botText from '../resources/bot.json';
 import * as wizardText from '../resources/wizard.json';
 import { Telegraf, Scenes, session, Context } from 'telegraf';
 import { AddressInfo } from './model/address_info';
-import { FluxFeedRewardWizard } from './modules/reward/wizard/flux_feed';
-import { OcrFeedRewardWizard } from './modules/reward/wizard/ocr_feed';
+import { FluxFeedRewardWizard } from './modules/reward/feed/flux/wizard';
+import { OcrFeedRewardWizard } from './modules/reward/feed/ocr/wizard';
 import { Replier } from './general_replier';
-import { RewardBalanceWizard } from './modules/reward/wizard/total';
+import { TotalRewardWizard } from './modules/reward/total/wizard';
 import YAML from 'yaml';
 import { cliOptions } from './cli';
 import fs from 'fs';
@@ -15,7 +15,7 @@ import path from 'path';
 export class ChainlinkBot {
   private addressYaml!: AddressInfo;
   bot: Telegraf<Scenes.WizardContext>;
-  private rewardBalanceWizard!: RewardBalanceWizard;
+  private totalRewardWizard!: TotalRewardWizard;
   private fluxFeedRewardWizard!: FluxFeedRewardWizard;
   private ocrFeedRewardWizard!: OcrFeedRewardWizard;
 
@@ -32,14 +32,14 @@ export class ChainlinkBot {
   }
 
   private createWizardInstances(): void {
-    this.rewardBalanceWizard = new RewardBalanceWizard(this.addressYaml, cliOptions.provider);
+    this.totalRewardWizard = new TotalRewardWizard(this.addressYaml, cliOptions.provider);
     this.fluxFeedRewardWizard = new FluxFeedRewardWizard(this.addressYaml, cliOptions.provider);
     this.ocrFeedRewardWizard = new OcrFeedRewardWizard(this.addressYaml, cliOptions.provider);
   }
 
   private setupBot() {
     const stage = new Scenes.Stage<Scenes.WizardContext>([
-      this.rewardBalanceWizard.getWizard(),
+      this.totalRewardWizard.getWizard(),
       this.fluxFeedRewardWizard.getWizard(),
       this.ocrFeedRewardWizard.getWizard(),
     ]);
