@@ -4,6 +4,7 @@ import * as wizardText from '../resources/wizard.json';
 import { Telegraf, Scenes, session, Context } from 'telegraf';
 import { AddressInfo } from './model/address_info';
 import { FluxFeedRewardWizard } from './modules/reward/feed/flux/wizard';
+import { Helper } from './helper/help';
 import { OcrFeedRewardWizard } from './modules/reward/feed/ocr/wizard';
 import { Replier } from './general_replier';
 import { TotalRewardWizard } from './modules/reward/total/wizard';
@@ -32,9 +33,18 @@ export class ChainlinkBot {
   }
 
   private createWizardInstances(): void {
-    this.totalRewardWizard = new TotalRewardWizard(this.addressYaml, cliOptions.provider);
-    this.fluxFeedRewardWizard = new FluxFeedRewardWizard(this.addressYaml, cliOptions.provider);
-    this.ocrFeedRewardWizard = new OcrFeedRewardWizard(this.addressYaml, cliOptions.provider);
+    this.totalRewardWizard = new TotalRewardWizard(
+      this.addressYaml,
+      Helper.parseConnectionInfoToProvider(cliOptions.connectionInfo)
+    );
+    this.fluxFeedRewardWizard = new FluxFeedRewardWizard(
+      this.addressYaml,
+      Helper.parseConnectionInfoToProvider(cliOptions.connectionInfo)
+    );
+    this.ocrFeedRewardWizard = new OcrFeedRewardWizard(
+      this.addressYaml,
+      Helper.parseConnectionInfoToProvider(cliOptions.connectionInfo)
+    );
   }
 
   private setupBot() {
@@ -87,7 +97,7 @@ export class ChainlinkBot {
 
   private isChatEligible(ctx: Context): boolean {
     if (ctx.chat) {
-      if (!cliOptions.eligibleChats.includes(ctx.chat.id)) {
+      if (!cliOptions.eligibleChats.includes(Math.abs(ctx.chat.id))) {
         ctx.replyWithMarkdownV2(botText.messages.is_chat_eligible);
         return false;
       }

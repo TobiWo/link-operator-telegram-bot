@@ -8,7 +8,7 @@ export class TotalRewardService {
   async _getCurrentRewardsOnContracts(
     contracts: ContractInfo[],
     rewardOwner: string,
-    abi: any,
+    abi: any, // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
     isFlux: boolean
   ): Promise<BigNumber> {
     let totalReward: BigNumber = BigNumber.from('0');

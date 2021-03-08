@@ -1,11 +1,16 @@
 import * as cliText from '../resources/cli.json';
 import arg from 'arg';
-import { providers } from 'ethers';
 
 export interface CommandLineArgs {
   chatbotToken: string;
+  connectionInfo: ConnectionInfo;
   eligibleChats: number[];
-  provider: providers.BaseProvider;
+}
+
+export interface ConnectionInfo {
+  infuraId?: string;
+  infuraSecret?: string;
+  url?: string;
 }
 
 export class CLI {
@@ -19,8 +24,8 @@ export class CLI {
     this.printHelp();
     const cliArgs: CommandLineArgs = {
       chatbotToken: this.getChatbotToken(),
+      connectionInfo: this.getConnectionInfo(),
       eligibleChats: this.getEligibleChats(),
-      provider: this.getCorrectProvider(),
     };
     return cliArgs;
   }
@@ -29,7 +34,7 @@ export class CLI {
     if (!this.args[cliText.long.eligible_chats])
       throw new Error(`${cliText.errors.missing_arg} ${cliText.long.eligible_chats}`);
     const eligibleChatsString: string = this.args[cliText.long.eligible_chats];
-    return eligibleChatsString.split(',').map((chatId) => parseInt(chatId));
+    return eligibleChatsString.split(',').map((chatId) => Math.abs(parseInt(chatId)));
   }
 
   private getChatbotToken(): string {
@@ -38,10 +43,10 @@ export class CLI {
     return this.args[cliText.long.bot_token];
   }
 
-  private getCorrectProvider(): providers.BaseProvider {
+  private getConnectionInfo(): ConnectionInfo {
     this.printHelp();
     const url: string = this.args[cliText.long.url];
-    let generalProvider: providers.BaseProvider;
+    const connectionInfo: ConnectionInfo = {};
     if (!url) {
       const infuraProjectSecret: string = this.args[cliText.long.infura_project_secret];
       const infuraProjectId: string = this.args[cliText.long.infura_project_id];
@@ -49,18 +54,14 @@ export class CLI {
         throw new Error(
           `${cliText.errors.missing_arg} ${cliText.long.infura_project_id} and/or ${cliText.long.infura_project_secret}`
         );
-      generalProvider = new providers.InfuraProvider('homestead', {
-        projectId: infuraProjectId,
-        projectSecret: infuraProjectSecret,
-      });
-    } else if (url.includes('ws')) {
-      generalProvider = new providers.WebSocketProvider(url);
-    } else if (url.includes('http')) {
-      generalProvider = new providers.JsonRpcProvider(url);
+      connectionInfo.infuraId = infuraProjectId;
+      connectionInfo.infuraSecret = infuraProjectSecret;
+    } else if (url.includes('ws') || url.includes('http')) {
+      connectionInfo.url = url;
     } else {
       throw Error(cliText.errors.url);
     }
-    return generalProvider;
+    return connectionInfo;
   }
 
   private getArgs(): any {
