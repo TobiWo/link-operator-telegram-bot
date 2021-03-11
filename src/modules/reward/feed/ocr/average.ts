@@ -1,11 +1,15 @@
 import * as wizardText from '../../../../../resources/wizard.json';
-import { BigNumber, utils } from 'ethers';
 import { BillingSet, FeedRewardStatus } from '../../../../model/feed_reward_status';
 import { Composer, Markup, Scenes } from 'telegraf';
 import { Helper } from '../../../../helper/help';
 import { OcrFeedRewardService } from './service';
 import { StepService } from '../step';
+import { utils } from 'ethers';
 
+/**
+ * StepService which holds all wizard-logic with regards to the average reward values.
+ * A step here is one particular functionality wihtin the wizard.
+ */
 export class AverageRewardStepService extends StepService<BillingSet> {
   private feedService: OcrFeedRewardService;
 
@@ -14,8 +18,16 @@ export class AverageRewardStepService extends StepService<BillingSet> {
     this.feedService = new OcrFeedRewardService();
   }
 
+  /**
+   * Replies with multiple inline buttons for different gas prices. Selected gas price is used for calculation
+   * of the current average transmitter reward.
+   *
+   * @param selectStepAfterReply Defines the step to which the wizard will return after the reply
+   * @param ctx chat context
+   * @returns position where to return within the wizard
+   */
   async _replyWithGasPriceRequestButton(
-    selectStep: number,
+    selectStepAfterReply: number,
     ctx: Scenes.WizardContext
   ): Promise<Scenes.WizardContextWizard<Scenes.WizardContext<Scenes.WizardSessionData>>> {
     await ctx.replyWithMarkdownV2(
@@ -47,11 +59,15 @@ export class AverageRewardStepService extends StepService<BillingSet> {
         ),
       ])
     );
-    return ctx.wizard.selectStep(selectStep);
+    return ctx.wizard.selectStep(selectStepAfterReply);
   }
 
   /**
    * @todo get current gas price
+   *
+   * Creates a composer which listens for the selected gas price and replies with the corresponding average rewards.
+   *
+   * @returns Composer which listens for the selected gas price
    */
   _getAverageTransmitterRewardStep(): Composer<Scenes.WizardContext<Scenes.WizardSessionData>> {
     const stepHandler = new Composer<Scenes.WizardContext>();
@@ -88,18 +104,25 @@ export class AverageRewardStepService extends StepService<BillingSet> {
     return stepHandler;
   }
 
+  /**
+   * Replies the average observation reward for all ocr-contracts in full Link.
+   *
+   * @param ctx chat context
+   */
   private async sendAverageObservationRewardReply(ctx: Scenes.WizardContext): Promise<void> {
-    let totalObservationReward: BigNumber = BigNumber.from(0);
-    for (const feedStatus of this.currentFeedStatus.values()) {
-      totalObservationReward = totalObservationReward.add(feedStatus.rewardData.linkWeiPerObservation);
-    }
     await ctx.reply(
       wizardText.ocr_feed_wizard.replies.average_observation_feed_reward.format(
-        Helper.parseLinkWeiToLink(totalObservationReward.div(this.currentFeedStatus.size), 3)
+        Helper.parseLinkWeiToLink(this.feedService._getAverageObservationReward(this.currentFeedStatus), 3)
       )
     );
   }
 
+  /**
+   * Replies the average transmitter reward in dependence of the supplied gas price for all ocr-contracts
+   *
+   * @param ctx chat context
+   * @param gasPriceInGwei
+   */
   private async sendAverageTransmitterRewardReply(ctx: Scenes.WizardContext, gasPriceInGwei: string): Promise<void> {
     await ctx.reply(
       wizardText.ocr_feed_wizard.replies.average_transmitter_feed_reward.format(

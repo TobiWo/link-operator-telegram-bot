@@ -9,6 +9,9 @@ import { Helper } from '../../../../helper/help';
 import { Replier } from '../../../../general_replier';
 import { RewardListenerStepService } from './listener';
 
+/**
+ * Wizard for getting detailed information about flux feeds
+ */
 export class FluxFeedRewardWizard extends FeedWizard<BigNumber> {
   private feedService: FluxFeedRewardService;
   private listenerStepService: RewardListenerStepService;
@@ -20,20 +23,31 @@ export class FluxFeedRewardWizard extends FeedWizard<BigNumber> {
     this.listenerStepService = new RewardListenerStepService(this.currentFeedStatus);
   }
 
+  /**
+   * initializes a created instance from FluxFeedRewardWizard
+   */
   async init(): Promise<void> {
     await this.feedService._setCurrentRewardsOnFeeds(this.currentFeedStatus);
   }
 
+  /**
+   * Returns the Flux Wizard with defined steps
+   * @returns WizardScene consisting of multiple steps
+   */
   getWizard(): Scenes.WizardScene<Scenes.WizardContext> {
     const wizardMainMenu: Composer<Scenes.WizardContext<Scenes.WizardSessionData>> = this.getWizardMainMenu();
     const fluxFeedWizard = new Scenes.WizardScene(
       wizardText.flux_feed_wizard.name,
       wizardMainMenu,
-      this.listenerStepService._getStartListeningConfirmationStep()
+      this.listenerStepService._getListeningConfirmationStep()
     );
     return fluxFeedWizard;
   }
 
+  /**
+   * Creates the wizards main menu with all available commands for this wizard
+   * @returns wizard main menu in form of a telegraf composer
+   */
   private getWizardMainMenu(): Composer<Scenes.WizardContext<Scenes.WizardSessionData>> {
     const mainMenu = new Composer<Scenes.WizardContext>();
     mainMenu.command(wizardText.commands.long.start_listening, async (ctx) => {
@@ -65,6 +79,11 @@ export class FluxFeedRewardWizard extends FeedWizard<BigNumber> {
     return mainMenu;
   }
 
+  /**
+   * Replies on the respective command with the average feed reward
+   *
+   * @param ctx chat context
+   */
   private async averageFeedRewardAmountStep(ctx: Scenes.WizardContext): Promise<void> {
     await ctx.reply(
       wizardText.flux_feed_wizard.replies.average_feed_reward.format(

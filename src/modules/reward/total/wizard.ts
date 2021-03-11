@@ -9,6 +9,9 @@ import { Helper } from '../../../helper/help';
 import { Replier } from '../../../general_replier';
 import { TotalRewardService } from './service';
 
+/**
+ * Wizard to print total rewards
+ */
 export class TotalRewardWizard {
   private rewardServive: TotalRewardService;
 
@@ -16,12 +19,20 @@ export class TotalRewardWizard {
     this.rewardServive = new TotalRewardService(this.provider);
   }
 
+  /**
+   * Returns the total reward wizard with defined steps (here only main menu)
+   * @returns WizardScene consisting of main menu
+   */
   getWizard(): Scenes.WizardScene<Scenes.WizardContext> {
     const wizardMainMenu: Composer<Scenes.WizardContext<Scenes.WizardSessionData>> = this.getWizardMainMenu();
     const rewardWizard = new Scenes.WizardScene(wizardText.total_wizard.name, wizardMainMenu);
     return rewardWizard;
   }
 
+  /**
+   * Creates the wizards main menu with all available commands for this wizard
+   * @returns wizard main menu in form of a telegraf composer
+   */
   private getWizardMainMenu(): Composer<Scenes.WizardContext<Scenes.WizardSessionData>> {
     const mainMenu = new Composer<Scenes.WizardContext>();
     mainMenu.command(wizardText.commands.long.current_total_balance, async (ctx) => {
@@ -41,6 +52,11 @@ export class TotalRewardWizard {
     return mainMenu;
   }
 
+  /**
+   * Replies with total available rewards (rewards on flux- and ocr-contracts, ocr-payee and total rewards)
+   *
+   * @param ctx chat context
+   */
   private async getRewardBalanceStep(ctx: Scenes.WizardContext): Promise<void> {
     await ctx.reply(wizardText.total_wizard.replies.fetching);
     const currentFluxRewards = await this.rewardServive._getCurrentRewardsOnContracts(
@@ -61,20 +77,14 @@ export class TotalRewardWizard {
     );
     const totalBalance: BigNumber = currentOcrContractRewards.add(currentFluxRewards).add(currentOcrPayeeRewards);
     await ctx.reply(
-      wizardText.total_wizard.replies.total_ocr_contrats.format(
-        Helper.parseLinkWeiToLink(currentOcrContractRewards, 2)
-      )
+      wizardText.total_wizard.replies.total_ocr_contrats.format(Helper.parseLinkWeiToLink(currentOcrContractRewards, 2))
     );
     await ctx.reply(
-      wizardText.total_wizard.replies.total_ocr_payee.format(
-        Helper.parseLinkWeiToLink(currentOcrPayeeRewards, 2)
-      )
+      wizardText.total_wizard.replies.total_ocr_payee.format(Helper.parseLinkWeiToLink(currentOcrPayeeRewards, 2))
     );
     await ctx.reply(
       wizardText.total_wizard.replies.total_flux.format(Helper.parseLinkWeiToLink(currentFluxRewards, 2))
     );
-    await ctx.reply(
-      wizardText.total_wizard.replies.total.format(Helper.parseLinkWeiToLink(totalBalance, 2))
-    );
+    await ctx.reply(wizardText.total_wizard.replies.total.format(Helper.parseLinkWeiToLink(totalBalance, 2)));
   }
 }

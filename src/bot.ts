@@ -32,6 +32,9 @@ export class ChainlinkBot {
     await this.ocrFeedRewardWizard.init();
   }
 
+  /**
+   * Creates all wizard instances
+   */
   private createWizardInstances(): void {
     this.totalRewardWizard = new TotalRewardWizard(
       this.addressYaml,
@@ -47,6 +50,10 @@ export class ChainlinkBot {
     );
   }
 
+  /**
+   * Initializes the bot with the defined stage (the different modules/wizards) and middleware,
+   * defines the bots start-command and the listener when to start a respective module.
+   */
   private setupBot() {
     const stage = new Scenes.Stage<Scenes.WizardContext>([
       this.totalRewardWizard.getWizard(),
@@ -84,6 +91,9 @@ export class ChainlinkBot {
     });
   }
 
+  /**
+   * Read the address-config-information from a hardcoded path.
+   */
   private readAddressYaml(): void {
     try {
       const contractAddressesFilePath: string = path.join(__dirname, '..', 'resources/external/address_info.yml');
@@ -95,6 +105,11 @@ export class ChainlinkBot {
     }
   }
 
+  /**
+   * Checks whether a chat is eligible to work with the bot. For preventing public usage.
+   *
+   * @param ctx chat context
+   */
   private isChatEligible(ctx: Context): boolean {
     if (ctx.chat) {
       if (!cliOptions.eligibleChats.includes(Math.abs(ctx.chat.id))) {

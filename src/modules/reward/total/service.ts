@@ -2,9 +2,22 @@ import * as LinkToken from '../../../../artifacts/LinkToken.json';
 import { BigNumber, Contract, providers } from 'ethers';
 import { ContractInfo } from '../../../model/address_info';
 
+/**
+ * Service for TotalRewardWizard.
+ * The service handles all telegraf independent logic.
+ */
 export class TotalRewardService {
   constructor(private provider: providers.BaseProvider) {}
 
+  /**
+   * Method which returns the value of total rewards for the defined workflow (flux or ocr)
+   *
+   * @param contracts flux- or ocr-contract addresses
+   * @param rewardOwner owner of the rewards to get correct rewards value from contracts
+   * @param abi flux or ocr abi
+   * @param isFlux boolean for which workflow the reward value should be retrieved
+   * @returns total reward for defined workflow
+   */
   async _getCurrentRewardsOnContracts(
     contracts: ContractInfo[],
     rewardOwner: string,
@@ -23,6 +36,13 @@ export class TotalRewardService {
     return totalReward;
   }
 
+  /**
+   * Returns the current rewards on the ocr payee address
+   *
+   * @param linkTokenAddress link token address
+   * @param ocrPayee payee address
+   * @returns current rewards on payee address
+   */
   async _getCurrentOcrPayeeRewards(linkTokenAddress: string, ocrPayee: string): Promise<BigNumber> {
     const contract: Contract = new Contract(linkTokenAddress, LinkToken.abi, this.provider);
     return await contract.balanceOf(ocrPayee);

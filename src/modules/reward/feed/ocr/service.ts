@@ -7,15 +7,38 @@ import { Helper } from '../../../../helper/help';
 import { TrxInfo } from '../../../../model/trx_info';
 import _ from 'lodash';
 
-const GAS_USAGE: BigNumber = BigNumber.from(231255);
+export const GAS_USAGE: BigNumber = BigNumber.from(231255);
 
+/**
+ * Service for OcrFeedRewardWizard.
+ * The service handles all telegraf independent logic.
+ */
 export class OcrFeedRewardService {
+  /**
+   * Returns transaction info object
+   *
+   * @todo Currently the transaction-receipt is fetched for the same trx. In the code of the service this refers
+   * to the trx where the BillingSet was adapted. For the gas price this is correct but for the gas usage it is the
+   * wrong trx. Here I need to use the transmission-trx vom the specific contract (find the last transmission trx on contract).
+   * As workaround, I ignore the transaction-receipt and use a hardcoded number for gas-usage (see where function is called)
+   *
+   * @param provider provider to retrieve transaction information
+   * @param transactionHash
+   * @returns object with TransactionResponse and TransactionReceipt
+   */
   async _getTrxInfo(provider: providers.BaseProvider, transactionHash: string): Promise<TrxInfo> {
     const transactionResponse: providers.TransactionResponse = await provider.getTransaction(transactionHash);
     const transactionReceipt: providers.TransactionReceipt = await provider.getTransactionReceipt(transactionHash);
     return { transactionReceipt: transactionReceipt, transactionResponse: transactionResponse };
   }
 
+  /**
+   * Returns a reply-message which displays changes for different transmitter reward values
+   *
+   * @param feedStatus feed-status object
+   * @param billingSet object which holds new reward values
+   * @returns reply-message with different transmitter reward values
+   */
   _getReplyForChangedTransmitterValues(feedStatus: FeedRewardStatus<BillingSet>, billingSet: BillingSet): string {
     let message: string = '';
     if (!feedStatus.rewardData.linkWeiPerTransmission.eq(billingSet.linkWeiPerTransmission)) {
@@ -33,6 +56,15 @@ export class OcrFeedRewardService {
     return message;
   }
 
+  /**
+   * Creates the transmitter reward for the new billing-set and defined gas price. This follows the
+   * Chainlink definition how to calculate the ocr-transmitter-reward.
+   *
+   * @param billingSet billing set object
+   * @param currentGasPrice current gas price
+   * @param gasUsed gas used for a transmitter trx
+   * @returns new transmitter reward
+   */
   _getNewTransmitterReward(billingSet: BillingSet, currentGasPrice: BigNumber, gasUsed: BigNumber): BigNumber {
     if (currentGasPrice.gte(billingSet.reasonableGasPriceInWei)) {
       return gasUsed.mul(currentGasPrice).mul(billingSet.linkPerEth).add(billingSet.linkWeiPerTransmission);
@@ -43,6 +75,28 @@ export class OcrFeedRewardService {
     }
   }
 
+  /**
+   * Returns the average observation reward for all ocr-contracts.
+   *
+   * @param currentFeedStatus status of all feeds
+   * @returns average observation reward for all ocr-contracts
+   */
+  _getAverageObservationReward(currentFeedStatus: Map<string, FeedRewardStatus<BillingSet>>): BigNumber {
+    let totalObservationReward: BigNumber = BigNumber.from(0);
+    for (const feedStatus of currentFeedStatus.values()) {
+      totalObservationReward = totalObservationReward.add(feedStatus.rewardData.linkWeiPerObservation);
+    }
+    return totalObservationReward.div(currentFeedStatus.size);
+  }
+
+  /**
+   * Returns the average transmitter reward for all ocr-contracts. This is higly volatile as it depends from
+   * many factors.
+   *
+   * @param currentFeedStatus status of all feeds
+   * @param gasPrice selected gas price
+   * @returns average transmitter reward for all ocr-contracts
+   */
   _getAverageTransmitterReward(
     currentFeedStatus: Map<string, FeedRewardStatus<BillingSet>>,
     gasPrice: BigNumber
@@ -56,6 +110,15 @@ export class OcrFeedRewardService {
     return totalTransmitterRewards.div(currentFeedStatus.size);
   }
 
+  /**
+   * Checks whether relevant transmitter reward values were changed in comparison to the current settings.
+   * Is called when an BillingSet-event was emitted.
+   *
+   * @param feedStatus feed status of one feed
+   * @param linkWeiPerTransmission value recorded in BillingSet-event
+   * @param linkPerEth value recorded in BillingSet-event
+   * @returns whether any transmitter reward value changed
+   */
   _isTransmitterRewardChanged(
     feedStatus: FeedRewardStatus<BillingSet>,
     linkWeiPerTransmission: BigNumber,
@@ -67,16 +130,36 @@ export class OcrFeedRewardService {
     );
   }
 
+  /**
+   * Checks whether the observation reward value was changed. Is called when an BillingSet-event was emitted.
+   *
+   * @param feedStatus feed status of one feed
+   * @param linkWeiPerObservation value recorded in BillingSet-event
+   * @returns whether observation reward value changed
+   */
   _isObservationRewardChanged(feedStatus: FeedRewardStatus<BillingSet>, linkWeiPerObservation: BigNumber): boolean {
     return !feedStatus.rewardData.linkWeiPerObservation.eq(linkWeiPerObservation);
   }
 
+  /**
+   * Updates the supplied feed status via call by reference
+   *
+   * @param feedStatus feed status of one feed
+   * @param newBillingSet updated BillingSet
+   */
   _updateCurrentBillingSet(feedStatus: FeedRewardStatus<BillingSet>, newBillingSet: BillingSet): void {
     if (!_.isEqual(feedStatus.rewardData, newBillingSet)) {
       feedStatus.rewardData = newBillingSet;
     }
   }
 
+  /**
+   * Creates contract-objects and stores it in the supplied empty currentFeedStatus-Map via call by reference.
+   *
+   * @param addressYaml full address_info.yml typescript represenation
+   * @param currentFeedStatus empty map for all feed status
+   * @param provider provider which is used to connect to the blockchain via contract-object
+   */
   _createOcrContracts(
     addressYaml: AddressInfo,
     currentFeedStatus: Map<string, FeedRewardStatus<BillingSet>>,
@@ -97,6 +180,11 @@ export class OcrFeedRewardService {
     }
   }
 
+  /**
+   * Sets current BillingSet for all feeds
+   *
+   * @param currentFeedStatus map for all feed status
+   */
   async _setCurrentBillingSetOnFeeds(currentFeedStatus: Map<string, FeedRewardStatus<BillingSet>>): Promise<void> {
     for (const feedStatus of currentFeedStatus.values()) {
       const currentBillingSetList: number[] = await feedStatus.contract.getBilling();
@@ -105,6 +193,13 @@ export class OcrFeedRewardService {
     }
   }
 
+  /**
+   * Creates a BillingSet/set of reward values as stored in the ocr-contract.
+   * Note: The units are different compared to the ocr-contract as using wei or full eth are more intuitive.
+   *
+   * @param contractReturnValue can be the return-value from getBilling or the first part of the emitted BillingEvent
+   * @returns set of reward values as defined in ocr-contracts
+   */
   _createBillingSet(contractReturnValue: number[]): BillingSet {
     return {
       linkPerEth: BigNumber.from(contractReturnValue[2]).div(utils.parseUnits('1', 'mwei')),

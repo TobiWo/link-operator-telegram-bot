@@ -9,6 +9,9 @@ import { Replier } from '../../../../general_replier';
 import { RewardListenerStepService } from './listener';
 import { providers } from 'ethers';
 
+/**
+ * Wizard for getting detailed information about ocr feeds
+ */
 export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
   private feedService: OcrFeedRewardService;
   private averageRewardStepService: AverageRewardStepService;
@@ -22,10 +25,17 @@ export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
     this.averageRewardStepService = new AverageRewardStepService(this.currentFeedStatus);
   }
 
+  /**
+   * initializes a created instance from OcrFeedRewardWizard
+   */
   async init(): Promise<void> {
     await this.feedService._setCurrentBillingSetOnFeeds(this.currentFeedStatus);
   }
 
+  /**
+   * Returns the OCR Wizard with defined steps
+   * @returns WizardScene consisting of multiple steps
+   */
   getWizard(): Scenes.WizardScene<Scenes.WizardContext> {
     const ocrFeedWizard = new Scenes.WizardScene(
       wizardText.ocr_feed_wizard.name,
@@ -36,9 +46,15 @@ export class OcrFeedRewardWizard extends FeedWizard<BillingSet> {
     return ocrFeedWizard;
   }
 
+  /**
+   * Creates the wizards main menu with all available commands for this wizard
+   * @returns wizard main menu in form of a telegraf composer
+   */
   private getWizardMainMenu(): Composer<Scenes.WizardContext<Scenes.WizardSessionData>> {
     const mainMenu = new Composer<Scenes.WizardContext>();
-    mainMenu.command(wizardText.commands.long.start_listening, async (ctx) => this.replyWithListeningConfirmationButton(1, ctx));
+    mainMenu.command(wizardText.commands.long.start_listening, async (ctx) =>
+      this.replyWithListeningConfirmationButton(1, ctx)
+    );
     mainMenu.command(wizardText.commands.short.start_listening, async (ctx) =>
       this.replyWithListeningConfirmationButton(1, ctx)
     );

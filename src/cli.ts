@@ -20,6 +20,10 @@ export class CLI {
     this.args = this.getArgs();
   }
 
+  /**
+   * Parses all cli-arguments
+   *
+   */
   parse(): CommandLineArgs {
     this.printHelp();
     const cliArgs: CommandLineArgs = {
@@ -30,6 +34,10 @@ export class CLI {
     return cliArgs;
   }
 
+  /**
+   * Retrieves eligible chats from cli-arguments
+   *
+   */
   private getEligibleChats(): number[] {
     if (!this.args[cliText.long.eligible_chats])
       throw new Error(`${cliText.errors.missing_arg} ${cliText.long.eligible_chats}`);
@@ -37,12 +45,20 @@ export class CLI {
     return eligibleChatsString.split(',').map((chatId) => Math.abs(parseInt(chatId)));
   }
 
+  /**
+   * Retrieves chatbot token from cli-arguments
+   *
+   */
   private getChatbotToken(): string {
     this.printHelp();
     if (!this.args[cliText.long.bot_token]) throw new Error(`${cliText.errors.missing_arg} ${cliText.long.bot_token}`);
     return this.args[cliText.long.bot_token];
   }
 
+  /**
+   * Parses blockchain connection relevant info (url, infura-data) into an defined object.
+   *
+   */
   private getConnectionInfo(): ConnectionInfo {
     this.printHelp();
     const url: string = this.args[cliText.long.url];
@@ -64,6 +80,9 @@ export class CLI {
     return connectionInfo;
   }
 
+  /**
+   * Returns all cli-arguments
+   */
   private getArgs(): any {
     return arg({
       //Types'
