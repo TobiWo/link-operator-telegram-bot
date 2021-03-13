@@ -1,6 +1,6 @@
 import '../../../prototype/string.extensions';
 import * as FluxAggregator from '../../../../artifacts/FluxAggregator.json';
-import * as OcrAggregator from '../../../../artifacts/OCR.json';
+import * as OcrAggregator from '../../../../artifacts/OffchainAggregatorBilling.json';
 import * as wizardText from '../../../../resources/wizard.json';
 import { BigNumber, providers } from 'ethers';
 import { Scenes, Composer } from 'telegraf';

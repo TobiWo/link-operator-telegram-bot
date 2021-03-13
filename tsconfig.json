@@ -9,6 +9,6 @@
     "sourceMap": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "resources/*.json"],
+  "include": ["src/**/*", "resources/*.json", "artifacts/**/*"],
   "exclude": ["node_modules"]
 }
