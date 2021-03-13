@@ -52,7 +52,8 @@
       "stopped_listening": "Stopped listening on all ocr-contracts!",
       "gas_price_request": "*Please select the gas price for which you want to receive the average transmitter reward*",
       "average_observation_feed_reward": "Current average observation feed-reward: {0} LINK (independent of gas price)",
-      "average_transmitter_feed_reward": "Current average transmitter feed-reward for selected gas price: {0} LINK"
+      "average_transmitter_feed_reward": "Current average transmitter feed-reward for selected gas price: {0} LINK",
+      "no_gas_price": "Sorry, I couldn't fetch the current gas price. Please try again or choose another option!"
     },
     "action": {
       "gasPrice": {
