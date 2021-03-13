@@ -1,69 +1,119 @@
-import { Telegraf, Scenes, session, Markup, Context } from 'telegraf';
-import { RewardBalanceWizard } from './modules/reward/total_wizard';
+import './prototype/string.extensions';
+import * as botText from '../resources/bot.json';
+import * as wizardText from '../resources/wizard.json';
+import { Telegraf, Scenes, session, Context } from 'telegraf';
+import { AddressInfo } from './model/address_info';
+import { FluxFeedRewardWizard } from './modules/reward/feed/flux/wizard';
+import { Helper } from './helper/help';
+import { OcrFeedRewardWizard } from './modules/reward/feed/ocr/wizard';
+import { Replier } from './general_replier';
+import { TotalRewardWizard } from './modules/reward/total/wizard';
 import YAML from 'yaml';
 import { cliOptions } from './cli';
 import fs from 'fs';
 import path from 'path';
 
-// import { HttpsProxyAgent } from 'https-proxy-agent';
-
-const MODULE1: string = '💰 Current total rewards';
-
-class ChainlinkBot {
-  private addressYaml: any;
+export class ChainlinkBot {
+  private addressYaml!: AddressInfo;
   bot: Telegraf<Scenes.WizardContext>;
-  private rewardBalanceWizard!: RewardBalanceWizard;
+  private totalRewardWizard!: TotalRewardWizard;
+  private fluxFeedRewardWizard!: FluxFeedRewardWizard;
+  private ocrFeedRewardWizard!: OcrFeedRewardWizard;
 
   constructor() {
     this.readAddressYaml();
     this.bot = new Telegraf<Scenes.WizardContext>(cliOptions.chatbotToken);
-    this.setupWizardInstances();
+    this.createWizardInstances();
     this.setupBot();
   }
 
-  private setupWizardInstances(): void {
-    this.rewardBalanceWizard = new RewardBalanceWizard(this.addressYaml, cliOptions.provider);
+  async initWizardInstances(): Promise<void> {
+    await this.fluxFeedRewardWizard.init();
+    await this.ocrFeedRewardWizard.init();
   }
 
+  /**
+   * Creates all wizard instances
+   */
+  private createWizardInstances(): void {
+    this.totalRewardWizard = new TotalRewardWizard(
+      this.addressYaml,
+      Helper.parseConnectionInfoToProvider(cliOptions.connectionInfo)
+    );
+    this.fluxFeedRewardWizard = new FluxFeedRewardWizard(
+      this.addressYaml,
+      Helper.parseConnectionInfoToProvider(cliOptions.connectionInfo)
+    );
+    this.ocrFeedRewardWizard = new OcrFeedRewardWizard(
+      this.addressYaml,
+      Helper.parseConnectionInfoToProvider(cliOptions.connectionInfo)
+    );
+  }
+
+  /**
+   * Initializes the bot with the defined stage (the different modules/wizards) and middleware,
+   * defines the bots start-command and the listener when to start a respective module.
+   */
   private setupBot() {
-    const stage = new Scenes.Stage<Scenes.WizardContext>([this.rewardBalanceWizard.getRewardBalanceWizard()]);
+    const stage = new Scenes.Stage<Scenes.WizardContext>([
+      this.totalRewardWizard.getWizard(),
+      this.fluxFeedRewardWizard.getWizard(),
+      this.ocrFeedRewardWizard.getWizard(),
+    ]);
     this.bot.use(session());
     this.bot.use(stage.middleware());
 
     this.bot.help((ctx) => {
       if (this.isChatEligible(ctx)) {
-        ctx.replyWithMarkdownV2(
-          'This bot is segmented into several modules with certain funtionalities\\. Type `link` to start the bot\\.'
-        );
+        ctx.replyWithMarkdownV2(botText.messages.help);
       }
     });
 
-    this.bot.hears('link', async (ctx) => {
+    this.bot.hears(botText.commands.link, async (ctx) => {
       if (this.isChatEligible(ctx)) {
-        await ctx.replyWithMarkdownV2(
-          '*Choose your module*',
-          Markup.keyboard([[MODULE1]])
-            .oneTime()
-            .resize()
-        );
+        await Replier.replyBotMainMenu(ctx);
       }
     });
-    this.bot.hears(MODULE1, (ctx) => {
-      ctx.scene.enter('reward-wizard');
-      ctx.replyWithMarkdownV2('*Entering reward fetcher module\\!*\nType `/help` for all available commands');
+    this.bot.hears(botText.module_names.total_reward, (ctx) => {
+      ctx.scene.enter(wizardText.total_wizard.name);
+      ctx.replyWithMarkdownV2(botText.messages.enter_total_reward.format(wizardText.total_wizard.replies.help));
+      ctx.reply(botText.messages.type_help);
+    });
+    this.bot.hears(botText.module_names.flux_details, (ctx) => {
+      ctx.scene.enter(wizardText.flux_feed_wizard.name);
+      ctx.replyWithMarkdownV2(botText.messages.enter_flux_details.format(wizardText.flux_feed_wizard.replies.help));
+      ctx.reply(botText.messages.type_help);
+    });
+    this.bot.hears(botText.module_names.ocr_details, (ctx) => {
+      ctx.scene.enter(wizardText.ocr_feed_wizard.name);
+      ctx.replyWithMarkdownV2(botText.messages.enter_ocr_details.format(wizardText.ocr_feed_wizard.replies.help));
+      ctx.reply(botText.messages.type_help);
     });
   }
 
+  /**
+   * Read the address-config-information from a hardcoded path.
+   */
   private readAddressYaml(): void {
-    const contractAddressesFilePath: string = path.join(__dirname, '..', 'resources/address_info.yml');
-    const file: string = fs.readFileSync(contractAddressesFilePath, 'utf8');
-    this.addressYaml = YAML.parse(file);
+    try {
+      const contractAddressesFilePath: string = path.join(__dirname, '..', 'resources/external/address_info.yml');
+      const file: string = fs.readFileSync(contractAddressesFilePath, 'utf8');
+      this.addressYaml = YAML.parse(file);
+    } catch (error) {
+      console.log(error.message);
+      process.exit();
+    }
   }
 
+  /**
+   * Checks whether a chat is eligible to work with the bot. For preventing public usage.
+   *
+   * @param ctx chat context
+   */
   private isChatEligible(ctx: Context): boolean {
-    if (ctx.chat?.id) {
-      if (!cliOptions.eligibleChats.includes(Math.abs(ctx.chat?.id))) {
-        ctx.replyWithMarkdownV2('*Sorry, this chat is not eligible to work with me\\!*');
+    if (ctx.chat) {
+      if (!cliOptions.eligibleChats.includes(Math.abs(ctx.chat.id))) {
+        ctx.replyWithMarkdownV2(botText.messages.is_chat_eligible);
         return false;
       }
       return true;
@@ -71,6 +121,3 @@ class ChainlinkBot {
     return false;
   }
 }
-
-const chainlinkBot = new ChainlinkBot();
-export default chainlinkBot;

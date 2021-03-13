@@ -3,9 +3,9 @@ services:
   link-operator-telegram-bot:
     image: link-operator-telegram-bot:latest
     container_name: link-operator-telegram-bot
-    command: --bot-token <token> --eligible-chats 562433941,570160199 --url ws://ethereum-mainnet:8546
+    command: --bot-token <token> --eligible-chats <chat-ids> --url ws://ethereum-mainnet:8546
     volumes:
-      - ./resources:/home/bot/link-operator-telegram-bot/dist/resources
+      - ./resources:/home/bot/dist/resources/external
     networks:
       - ETH-MAINNET
 

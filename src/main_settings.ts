@@ -1,18 +1,18 @@
-import { Telegraf, Scenes } from 'telegraf';
-import ChainlinkBot from './bot';
 // import { cliOptions } from './cli';
 // import { logger } from './logger';
+import { ChainlinkBot } from './bot';
 
 export class Main {
-  private chainlinkBot: Telegraf<Scenes.WizardContext>;
+  private chainlinkBot: ChainlinkBot;
 
   constructor() {
-    this.chainlinkBot = ChainlinkBot.bot;
+    this.chainlinkBot = new ChainlinkBot();
   }
 
   async init(): Promise<void> {
-    this.chainlinkBot.launch();
-    process.once('SIGINT', () => this.chainlinkBot.stop('SIGINT'));
-    process.once('SIGTERM', () => this.chainlinkBot.stop('SIGTERM'));
+    await this.chainlinkBot.initWizardInstances();
+    this.chainlinkBot.bot.launch();
+    process.once('SIGINT', () => this.chainlinkBot.bot.stop('SIGINT'));
+    process.once('SIGTERM', () => this.chainlinkBot.bot.stop('SIGTERM'));
   }
 }
