@@ -6,8 +6,10 @@ import { AddressInfo } from '../../../../model/address_info';
 import { Helper } from '../../../../helper/help';
 import { TrxInfo } from '../../../../model/trx_info';
 import _ from 'lodash';
+import axios from 'axios';
 
 export const GAS_USAGE: BigNumber = BigNumber.from(231255);
+const GAS_PRICE_ORACLE: string = 'https://www.etherchain.org/api/gasPriceOracle';
 
 /**
  * Service for OcrFeedRewardWizard.
@@ -208,5 +210,21 @@ export class OcrFeedRewardService {
       maximumGasPriceInWei: utils.parseUnits(contractReturnValue[0].toString(), 'gwei'),
       reasonableGasPriceInWei: utils.parseUnits(contractReturnValue[1].toString(), 'gwei'),
     };
+  }
+
+  /**
+   * Get the current fast gas-price from gas-oracle (see constant).
+   *
+   * @throws when response is not a 200
+   * @returns Current gas-price in gwei
+   */
+  async _getCurrentGasPriceInGwei(): Promise<string> {
+    const response = await axios.get(GAS_PRICE_ORACLE);
+    if (response.status === 200) {
+      const fastGasPrice = response.data.fast;
+      return fastGasPrice.toString();
+    } else {
+      throw Error(`NoResponseError: Couldn't fetch gas price from oracle. Oracle responded with ${response.status}.`);
+    }
   }
 }

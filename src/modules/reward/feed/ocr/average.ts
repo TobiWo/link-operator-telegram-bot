@@ -4,6 +4,7 @@ import { Composer, Markup, Scenes } from 'telegraf';
 import { Helper } from '../../../../helper/help';
 import { OcrFeedRewardService } from './service';
 import { StepService } from '../step';
+import { logger } from '../../../../logger';
 import { utils } from 'ethers';
 
 /**
@@ -97,11 +98,29 @@ export class AverageRewardStepService extends StepService<BillingSet> {
       return ctx.wizard.selectStep(0);
     });
     stepHandler.action(wizardText.ocr_feed_wizard.action.gasPrice.current, async (ctx) => {
-      await this.sendAverageTransmitterRewardReply(ctx, '1');
+      await this.sendAverageTransmitterRewardWithCurrentGasPriceReply(ctx);
       await this.sendAverageObservationRewardReply(ctx);
       return ctx.wizard.selectStep(0);
     });
     return stepHandler;
+  }
+
+  /**
+   * Replies the average transmitter reward in dependence of the current fast gas price
+   *
+   * @param ctx chat context
+   */
+  private async sendAverageTransmitterRewardWithCurrentGasPriceReply(ctx: Scenes.WizardContext): Promise<void> {
+    try {
+      const currentFastGasPrice: string = await this.feedService._getCurrentGasPriceInGwei();
+      await ctx.reply('Current fast gas price is: {0} GWEI'.format(currentFastGasPrice));
+      await this.sendAverageTransmitterRewardReply(ctx, currentFastGasPrice);
+    } catch (err) {
+      logger.error(err.message);
+      if (err.message.includes('NoResponseError')) {
+        await ctx.reply(wizardText.ocr_feed_wizard.replies.no_gas_price);
+      }
+    }
   }
 
   /**
