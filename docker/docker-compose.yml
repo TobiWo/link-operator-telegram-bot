@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  link-operator-telegram-bot:
+    image: link-operator-telegram-bot:latest
+    container_name: link-operator-telegram-bot
+    command: --bot-token <token> --eligible-chats <chat-ids> --url ws://ethereum-mainnet:8546
+    volumes:
+      - ./resources:/home/bot/dist/resources/external
+    networks:
+      - ETH-MAINNET
+
+networks:
+  ETH-MAINNET:
+    external: true

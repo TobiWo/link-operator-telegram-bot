@@ -1,0 +1,19 @@
+{
+  "module_names": {
+    "total_reward": "💰 Current total rewards",
+    "flux_details": "🦻 Flux feed reward details",
+    "ocr_details": "🦻 OCR feed reward details"
+  },
+  "messages": {
+    "help": "This bot is segmented into several modules with certain funtionalities\\. Type `link` to start the bot\\.",
+    "choose_module": "*Choose your module*",
+    "enter_total_reward": "*Entering reward fetcher module\\!*\n{0}",
+    "enter_flux_details": "*Entering flux feed details module\\!*\n{0}",
+    "enter_ocr_details": "*Entering ocr feed details module\\!*\n{0}",
+    "is_chat_eligible": "*Sorry, this chat is not eligible to work with me\\!*",
+    "type_help": "If you are stuck in the module type /help for all available commands"
+  },
+  "commands": {
+    "link": "link"
+  }
+}
