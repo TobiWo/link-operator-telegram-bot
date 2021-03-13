@@ -6,6 +6,7 @@ import { FeedRewardStatus } from '../../../../model/feed_reward_status';
 import { FluxFeedRewardService } from './service';
 import { Helper } from '../../../../helper/help';
 import { StepService } from '../step';
+import { logger } from '../../../../logger';
 
 // Name of the Event to listen for
 const ROUND_DETAILS_UPDATED_NAME: string = 'RoundDetailsUpdated';
@@ -80,7 +81,7 @@ export class RewardListenerStepService extends StepService<BigNumber> {
       );
       this.feedService._updateCurrentFeedReward(this.getFeedStatus(feedName), paymentAmount);
     } catch (err) {
-      console.log(err.message);
+      logger.warn(err.message);
     }
   }
 

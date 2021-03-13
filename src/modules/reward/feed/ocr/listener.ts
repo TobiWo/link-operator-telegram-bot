@@ -6,6 +6,7 @@ import { providers, utils } from 'ethers';
 import { Helper } from '../../../../helper/help';
 import { StepService } from '../step';
 import { TrxInfo } from '../../../../model/trx_info';
+import { logger } from '../../../../logger';
 
 // Name of the Event to listen for
 const BILLING_SET_NAME: string = 'BillingSet';
@@ -113,7 +114,7 @@ export class RewardListenerStepService extends StepService<BillingSet> {
           )
         );
       } catch (err) {
-        console.log(err);
+        logger.warn(err.message);
       }
     }
   }
@@ -135,7 +136,7 @@ export class RewardListenerStepService extends StepService<BillingSet> {
           )
         );
       } catch (err) {
-        console.log(err.message);
+        logger.warn(err.message);
       }
     }
   }
