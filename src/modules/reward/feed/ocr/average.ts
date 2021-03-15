@@ -73,36 +73,44 @@ export class AverageRewardStepService extends StepService<BillingSet> {
   _getAverageTransmitterRewardStep(): Composer<Scenes.WizardContext<Scenes.WizardSessionData>> {
     const stepHandler = new Composer<Scenes.WizardContext>();
     stepHandler.action(wizardText.ocr_feed_wizard.action.gasPrice._50, async (ctx) => {
-      await this.sendAverageTransmitterRewardReply(ctx, '50');
-      await this.sendAverageObservationRewardReply(ctx);
+      await this.sendAverageRewardReplies(ctx, '50');
       return ctx.wizard.selectStep(0);
     });
     stepHandler.action(wizardText.ocr_feed_wizard.action.gasPrice._100, async (ctx) => {
-      await this.sendAverageTransmitterRewardReply(ctx, '100');
-      await this.sendAverageObservationRewardReply(ctx);
+      await this.sendAverageRewardReplies(ctx, '100');
       return ctx.wizard.selectStep(0);
     });
     stepHandler.action(wizardText.ocr_feed_wizard.action.gasPrice._200, async (ctx) => {
-      await this.sendAverageTransmitterRewardReply(ctx, '200');
-      await this.sendAverageObservationRewardReply(ctx);
+      await this.sendAverageRewardReplies(ctx, '200');
       return ctx.wizard.selectStep(0);
     });
     stepHandler.action(wizardText.ocr_feed_wizard.action.gasPrice._400, async (ctx) => {
-      await this.sendAverageTransmitterRewardReply(ctx, '400');
-      await this.sendAverageObservationRewardReply(ctx);
+      await this.sendAverageRewardReplies(ctx, '400');
       return ctx.wizard.selectStep(0);
     });
     stepHandler.action(wizardText.ocr_feed_wizard.action.gasPrice._700, async (ctx) => {
-      await this.sendAverageTransmitterRewardReply(ctx, '700');
-      await this.sendAverageObservationRewardReply(ctx);
+      await this.sendAverageRewardReplies(ctx, '700');
       return ctx.wizard.selectStep(0);
     });
     stepHandler.action(wizardText.ocr_feed_wizard.action.gasPrice.current, async (ctx) => {
-      await this.sendAverageTransmitterRewardWithCurrentGasPriceReply(ctx);
-      await this.sendAverageObservationRewardReply(ctx);
+      await this.sendAverageRewardReplies(ctx, wizardText.ocr_feed_wizard.action.gasPrice.current);
       return ctx.wizard.selectStep(0);
     });
     return stepHandler;
+  }
+
+  /**
+   * Wrapper to send replies with ocr reward changes (observation and transmitter)
+   *
+   * @param ctx chat context
+   * @param gasPriceInGwei gas price in gwei
+   */
+  async sendAverageRewardReplies(ctx: Scenes.WizardContext, gasPriceInGwei: string): Promise<void> {
+    await this.feedService._updateFeedBillingSets(this.currentFeedStatus);
+    gasPriceInGwei === wizardText.ocr_feed_wizard.action.gasPrice.current
+      ? await this.sendAverageTransmitterRewardWithCurrentGasPriceReply(ctx)
+      : await this.sendAverageTransmitterRewardReply(ctx, gasPriceInGwei);
+    await this.sendAverageObservationRewardReply(ctx);
   }
 
   /**

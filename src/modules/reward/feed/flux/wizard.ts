@@ -87,7 +87,7 @@ export class FluxFeedRewardWizard extends FeedWizard<BigNumber> {
   private async averageFeedRewardAmountStep(ctx: Scenes.WizardContext): Promise<void> {
     await ctx.reply(
       wizardText.flux_feed_wizard.replies.average_feed_reward.format(
-        Helper.parseLinkWeiToLink(this.feedService._getAverageFeedRewardAmount(this.currentFeedStatus), 2)
+        Helper.parseLinkWeiToLink(await this.feedService._getAverageFeedRewardAmount(this.currentFeedStatus), 2)
       )
     );
   }

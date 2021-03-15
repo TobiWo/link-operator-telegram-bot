@@ -7,9 +7,11 @@ import { Helper } from '../../../../helper/help';
 import { TrxInfo } from '../../../../model/trx_info';
 import _ from 'lodash';
 import axios from 'axios';
+import { logger } from '../../../../logger';
 
 export const GAS_USAGE: BigNumber = BigNumber.from(231255);
 const GAS_PRICE_ORACLE: string = 'https://www.etherchain.org/api/gasPriceOracle';
+const BILLING_SET_NAME: string = 'BillingSet';
 
 /**
  * Service for OcrFeedRewardWizard.
@@ -144,6 +146,17 @@ export class OcrFeedRewardService {
   }
 
   /**
+   * Updates feed-rewards (if present) for all ocr-feeds.
+   *
+   * @param currentFeedStatus map with all feed status
+   */
+  async _updateFeedBillingSets(currentFeedStatus: Map<string, FeedRewardStatus<BillingSet>>): Promise<void> {
+    const feedStatus: FeedRewardStatus<BillingSet> = currentFeedStatus.values().next().value;
+    if (feedStatus.contract.listeners(BILLING_SET_NAME).length != 0) return;
+    await this._setCurrentBillingSetOnFeeds(currentFeedStatus);
+  }
+
+  /**
    * Updates the supplied feed status via call by reference
    *
    * @param feedStatus feed status of one feed
@@ -193,6 +206,7 @@ export class OcrFeedRewardService {
       const currentBillingSet: BillingSet = this._createBillingSet(currentBillingSetList);
       feedStatus.rewardData = currentBillingSet;
     }
+    logger.info('Updated ocr feed rewards');
   }
 
   /**
