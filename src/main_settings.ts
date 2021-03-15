@@ -1,6 +1,6 @@
 // import { cliOptions } from './cli';
-// import { logger } from './logger';
 import { ChainlinkBot } from './bot';
+import { logger } from './logger';
 
 export class Main {
   private chainlinkBot: ChainlinkBot;
@@ -12,6 +12,7 @@ export class Main {
   async init(): Promise<void> {
     await this.chainlinkBot.initWizardInstances();
     this.chainlinkBot.bot.launch();
+    logger.info('Launched link-operator-telegram-bot');
     process.once('SIGINT', () => this.chainlinkBot.bot.stop('SIGINT'));
     process.once('SIGTERM', () => this.chainlinkBot.bot.stop('SIGTERM'));
   }
