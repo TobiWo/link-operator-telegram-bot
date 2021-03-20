@@ -2,6 +2,10 @@ import * as FluxAggregator from '../../../../../artifacts/FluxAggregator.json';
 import { providers, Contract, BigNumber } from 'ethers';
 import { AddressInfo } from '../../../../model/address_info';
 import { FeedRewardStatus } from '../../../../model/feed_reward_status';
+import { logger } from '../../../../logger';
+
+// Name of the Event to listen for
+const ROUND_DETAILS_UPDATED_NAME: string = 'RoundDetailsUpdated';
 
 /**
  * Service for FluxFeedRewardWizard.
@@ -14,12 +18,24 @@ export class FluxFeedRewardService {
    * @param currentFeedStatus map with all feed status
    * @returns average feed reward
    */
-  _getAverageFeedRewardAmount(currentFeedStatus: Map<string, FeedRewardStatus<BigNumber>>): BigNumber {
+  async _getAverageFeedRewardAmount(currentFeedStatus: Map<string, FeedRewardStatus<BigNumber>>): Promise<BigNumber> {
+    await this.updateFeedRewards(currentFeedStatus);
     let totalRewards: BigNumber = BigNumber.from(0);
     for (const feedStatus of currentFeedStatus.values()) {
       totalRewards = totalRewards.add(feedStatus.rewardData);
     }
     return totalRewards.div(BigNumber.from(currentFeedStatus.size));
+  }
+
+  /**
+   * Updates feed-rewards (if present) for all flux-feeds.
+   *
+   * @param currentFeedStatus map with all feed status
+   */
+  private async updateFeedRewards(currentFeedStatus: Map<string, FeedRewardStatus<BigNumber>>): Promise<void> {
+    const feedStatus: FeedRewardStatus<BigNumber> = currentFeedStatus.values().next().value;
+    if (feedStatus.contract.listeners(ROUND_DETAILS_UPDATED_NAME).length != 0) return;
+    await this._setCurrentRewardsOnFeeds(currentFeedStatus);
   }
 
   /**
@@ -63,5 +79,6 @@ export class FluxFeedRewardService {
       const currentPaymentAmount: BigNumber = await feedStatus.contract.paymentAmount();
       feedStatus.rewardData = currentPaymentAmount;
     }
+    logger.info('Updated flux feed rewards');
   }
 }

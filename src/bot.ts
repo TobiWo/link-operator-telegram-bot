@@ -11,6 +11,7 @@ import { TotalRewardWizard } from './modules/reward/total/wizard';
 import YAML from 'yaml';
 import { cliOptions } from './cli';
 import fs from 'fs';
+import { logger } from './logger';
 import path from 'path';
 
 export class ChainlinkBot {
@@ -30,6 +31,7 @@ export class ChainlinkBot {
   async initWizardInstances(): Promise<void> {
     await this.fluxFeedRewardWizard.init();
     await this.ocrFeedRewardWizard.init();
+    logger.info('Initialized wizard instances');
   }
 
   /**
@@ -89,6 +91,7 @@ export class ChainlinkBot {
       ctx.replyWithMarkdownV2(botText.messages.enter_ocr_details.format(wizardText.ocr_feed_wizard.replies.help));
       ctx.reply(botText.messages.type_help);
     });
+    logger.info('Set up telegram bot');
   }
 
   /**
@@ -99,8 +102,9 @@ export class ChainlinkBot {
       const contractAddressesFilePath: string = path.join(__dirname, '..', 'resources/external/address_info.yml');
       const file: string = fs.readFileSync(contractAddressesFilePath, 'utf8');
       this.addressYaml = YAML.parse(file);
+      logger.info('Read address_info.yml');
     } catch (error) {
-      console.log(error.message);
+      logger.error(error.message);
       process.exit();
     }
   }

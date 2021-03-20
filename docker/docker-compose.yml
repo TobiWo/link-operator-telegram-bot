@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   link-operator-telegram-bot:
-    image: link-operator-telegram-bot:latest
+    image: link-operator-telegram-bot:0.1.0
     container_name: link-operator-telegram-bot
     command: --bot-token <token> --eligible-chats <chat-ids> --url ws://ethereum-mainnet:8546
     volumes:
