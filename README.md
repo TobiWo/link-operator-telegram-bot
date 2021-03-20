@@ -103,6 +103,10 @@ I know this is one big shortcoming which I will work on as first improvement.
 
 ## Donations/Contributions
 
-This project was implemented independently from my employer. Therefore I really appreciate any collaborative work and/or help from the community.
+This project was built independently from my employer. Therefore I really appreciate any collaborative work and/or help from the community.
 
-You can also donate if you like. Please use the following address for donations: `0x5a7F786815C03b45DC4341baE97fD4D9D6E70320` (ETH or ERC-20).
+You can also donate if you like. This definitely helps the project as well. Please use the following address for donations: `0x5a7F786815C03b45DC4341baE97fD4D9D6E70320` (ETH or ERC-20).
+
+## Outlook
+
+As you read and experienced while setting the bot up, the bot needs to be deployed by every operator itself. However, in the future it could be also possible to create a general available bot-instance. For now the further development concentrates on code and logic improvements, quality of life improvements and probably also new features.
