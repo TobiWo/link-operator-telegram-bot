@@ -24,10 +24,10 @@
     "options": "options:",
     "descriptions": {
       "bot_token": "Chat-bot API token",
-      "eligible_chats": "comma separated list with chat-ids on which the bot should work",
+      "eligible_chats": "comma separated string with chat-ids on which the bot should work",
       "url": "blockchain client connection url (optional)",
-      "infura_project_id": "infura project id (optional if url is set)",
-      "infura_project_secret": "infura project secret (optional if url is set)",
+      "infura_project_id": "infura project id (will be ignored if url is set)",
+      "infura_project_secret": "infura project secret (will be ignored if url is set)",
       "help": "print help"
     }
   }
