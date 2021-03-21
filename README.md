@@ -80,6 +80,7 @@ Before the container-start you also need to get the chat-ids which should be all
 3. Give the bot administrative rights (necessary because the bot can only listen to chat-messages as admin)
 4. Add the bot called **@RawDataBot**
 5. After adding this bot, it will immediately print a lot of information inclusive the chat-id. That's the information you want. This will be put into flag `--eligigble-chats` (some example output for **@RawDataBot** can be found [here](https://stackoverflow.com/a/46247058/4030166))
+    - I experienced that sometimes it is necessary to add the bot multiple times before it prints the json
 6. Delete **@RawDataBot** from group
 
 **Note:** If you remove your link-bot from the chat and add it again, the chat-id might have changed.
